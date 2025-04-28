@@ -1,5 +1,5 @@
 # 2025-01-Estagio-de-TI
-Jogo que ira retratar a os passo de um aluno até conseguir um estágio de TI.
+Jogo que ira retratar os passo de um aluno até conseguir um estágio de TI.
 
 <div align="center"> <img src="docs/assets/imagens/download (4).png" height="auto" width="auto"/> </div>
 <div align="center">Repositório para desenvolvimento de um Estagiário que tera a jornada da Impressora ao Dev Sênior da disciplina de SBD1 - 2025.1</div>
