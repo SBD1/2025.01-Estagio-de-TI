@@ -25,6 +25,7 @@ Em resumo, o Modelo Entidade-Relacionamento é uma ferramenta essencial no plane
 <center>
 
 ## Histórico de Versão
+
 | Versão | Data | Descrição | Autor(es) |
 | :-: | :-: | :-: | :-: | 
 | `1.0`  | 02/05/2025 | Primeira versão  do MER  | [ ]() |

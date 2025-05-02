@@ -34,6 +34,7 @@ Abaixo está o nosso Diagrama Entidade-Relacionamento interativo:
 
 
 ## Histórico de Versão
+
 | Versão | Data | Descrição | Autor(es) |
 | :-: | :-: | :-: | :-: | 
 | `1.0`  | 02/05/2025 | Primeira versão  do MER  |  |
