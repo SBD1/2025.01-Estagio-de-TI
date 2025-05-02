@@ -40,9 +40,10 @@ O Modelo Relacional oferece uma forma eficiente e lógica de organizar e acessar
 
 Abaixo está o nosso Modelo Relacional interativo:
 
-<center>
+
 
 [V1 do MR.]()
+
 
 ## Histórico de Versão
 
@@ -50,4 +51,3 @@ Abaixo está o nosso Modelo Relacional interativo:
 | :-: | :-: | :-: | :-: | 
 | `1.0`  | 02/05/2025 | Primeira versão  do MER  |  |
 
-</center>

@@ -28,7 +28,6 @@ Em resumo, o Diagrama Entidade-Relacionamento é uma ferramenta poderosa no plan
 
 Abaixo está o nosso Diagrama Entidade-Relacionamento interativo:
 
-<center>
 
 [V1 do DER.]()
 
@@ -39,4 +38,3 @@ Abaixo está o nosso Diagrama Entidade-Relacionamento interativo:
 | :-: | :-: | :-: | :-: | 
 | `1.0`  | 02/05/2025 | Primeira versão  do MER  |  |
 
-</center>

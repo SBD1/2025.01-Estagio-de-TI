@@ -215,7 +215,7 @@ desempenhando um papel essencial na mecânica e na dinâmica de combate do jogo.
 
 
 
-<center>
+
 
 ## Histórico de Versão
 
@@ -224,4 +224,3 @@ desempenhando um papel essencial na mecânica e na dinâmica de combate do jogo.
 | `1.0`  | 02/05/2025 | Primeira versão  do DD  | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)  |
 
 
-</center>
