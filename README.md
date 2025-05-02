@@ -30,12 +30,129 @@ Cada *andar do prédio* representa uma etapa da sua evolução dentro da empresa
 
 ### Estrutura do Jogo
 
-- *Subsolo (Almoxarifado):* Itens de suporte (peças, cabos, drivers, ferramentas).
+- *Subsolo 2 (Servidor):* onde está alocado o servidor da empresa, cuidado com o frio!.
+- *Subsolo 1 (Almoxarifado):* Itens de suporte (peças, cabos, drivers, ferramentas).
 - *Térreo (Recepção):* Base para missões iniciais, conversar com NPCs e receber instruções.
-- *Andares 1 a 9:* Cada andar é uma "área" ou "setor" da empresa com desafios diferentes.
+- *Andares 1 a 10:* Cada andar é uma "área" ou "setor" da empresa com desafios diferentes.
 - *Cafeteria (do outro lado da rua):* Compra de power-ups (café, salgados, energéticos que dão buffs).
-- *Cobertura (RH + Diretoria):* Entrevista final e desafio supremo: um projeto completo.
 
+
+### Estrutura dos andares
+
+Neste RPG, você é um estagiário de TI em busca da tão sonhada efetivação. Cada andar de um prédio corporativo representa um novo desafio técnico e profissional. Supere todos os andares para alcançar o topo e conquistar seu cargo!
+
+---
+
+#### 🧱 1º Andar: Suporte Básico
+**Desafios:**
+- Trocar cabo de rede
+- Reiniciar modem
+- Instalar impressora
+- Ajudar usuário a ligar o monitor
+
+**Tema:** Help Desk, "reino das perguntas óbvias".
+
+---
+
+#### 🧰 2º Andar: Problemas de Hardware
+**Desafios:**
+- Trocar peças do PC
+- Identificar defeito na placa-mãe
+- Resolver máquina que não liga
+
+**Tema:** "Necrotério dos PCs Antigos".
+
+---
+
+#### 💻 3º Andar: Suporte Remoto e Atendimento
+**Desafios:**
+- Atender chamados
+- Lidar com usuários difíceis
+- Acessar máquinas via TeamViewer
+- Explicar termos técnicos de forma simples
+
+**Tema:** "O Call Center dos Lamentos".
+
+---
+
+#### 🧵 4º Andar: Cabeamento e Infraestrutura
+**Desafios:**
+- Montar rack
+- Organizar cabeamento
+- Identificar patch panels
+- Configurar switch
+
+**Tema:** "Labirinto dos Cabos Infinitos".
+
+---
+
+#### 🖧 5º Andar: Servidores e Redes
+**Desafios:**
+- Configurar IP fixo
+- Liberar portas
+- Montar servidor local
+- Resolver DHCP mal configurado
+
+**Tema:** "Sala do Frio" (com ar-condicionado congelante).
+
+---
+
+#### 🔐 6º Andar: Segurança da Informação
+**Desafios:**
+- Identificar phishing
+- Aplicar políticas de senha
+- Montar firewall básico
+- Remover vírus
+
+**Tema:** "Bunker da Cibersegurança".
+
+---
+
+#### 🌐 7º Andar: Desenvolvimento Web
+**Desafios:**
+- Corrigir bugs em HTML/CSS/JS
+- Fazer site responsivo
+- Integrar API
+
+**Tema:** "Reino do Stack Overflow".
+
+---
+
+#### ⚙️ 8º Andar: Backend e Integrações
+**Desafios:**
+- Lidar com banco de dados
+- Criar API REST
+- Resolver erros 500 misteriosos
+
+**Tema:** "Masmorra do NullPointerException".
+
+---
+
+#### 🛠️ 9º Andar: Automatizações e DevOps
+**Desafios:**
+- Criar script de automação
+- Configurar CI/CD
+- Usar Docker
+- Controlar versões com Git
+
+**Tema:** "Fortaleza dos Scripts Eternos".
+
+---
+
+#### 👔 10º Andar: Boss Final - Diretoria + Incidente Crítico
+**Desafios:**
+- Apresentar projeto para a diretoria
+- Lidar com pane geral na rede
+- Restaurar backup
+- Manter a calma sob pressão
+
+**Tema:** "A Sala do Chefe Supremo".
+
+**Recompensa:** 🎉 Efetivação! E talvez... um vale-refeição decente.
+
+---
+
+Boa sorte, estagiário! O futuro da TI está em suas mãos.
 
 ### Como rodar a documentação?
 
@@ -81,7 +198,6 @@ Instale Software necessários
 
   - [Diagrama Entidade-Relacionamento](./docs/modulo1/der.md)
   - [Dicionário de Dados](./docs/modulo1/dd.md)
-  - [Modelo Entidade-Relacionamento](./docs/modulo1/mer.md)
   - [Modelo Relacional](./docs/modulo1/mr.md)
 
 - Módulo 2
