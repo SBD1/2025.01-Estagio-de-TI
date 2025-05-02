@@ -220,6 +220,6 @@ desempenhando um papel essencial na mecânica e na dinâmica de combate do jogo.
 ## Histórico de Versão
 
 | Versão | Data | Descrição | Autor(es) | Revisor |
-| :-: | :-: | :-: | :-: | 
+| :-: | :-: | :-: | :-: | :-: |
 | `1.0`  | 02/05/2025 | Primeira versão  do MER  | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi) |
 

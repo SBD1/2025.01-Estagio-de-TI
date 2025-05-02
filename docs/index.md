@@ -59,5 +59,5 @@ O jogo "Estagiário: Da Impressora ao Dev Sênior" segue a jornada de um estagi�
 ## Histórico de Versão
 
 | Versão | Data | Descrição | Autor(es) | Revisor |
-| :-: | :-: | :-: | :-: | 
+| :-: | :-: | :-: | :-: | :-: |
 | `1.0`  | 02/05/2025 | Primeira versão  do MER  | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi) |

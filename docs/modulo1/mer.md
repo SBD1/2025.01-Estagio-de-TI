@@ -26,9 +26,9 @@ Em resumo, o Modelo Entidade-Relacionamento é uma ferramenta essencial no plane
 
 ## Histórico de Versão
 
-| Versão | Data | Descrição | Autor(es) |
-| :-: | :-: | :-: | :-: | 
-| `1.0`  | 02/05/2025 | Primeira versão  do MER  | [ ]() |
+| Versão | Data | Descrição | Autor(es) | Revisor |
+| :-: | :-: | :-: | :-: | :-: |
+| `1.0`  | 02/05/2025 | Primeira versão  do MER  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi) | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr) |
 
 
 
