@@ -5,14 +5,14 @@ site_url: https://github.com/SBD1/2025.01-Estagio-de-TI
 site_name: Estagiario de TI
 nav:
   - Inicio: "index.md"
-  #- Apresentação:
-  #  - Apresentação 1: ""
+  - Apresentação:
+    - Apresentação 1: "apresentacao/modulo1.md"
   #  - Apresentação 2: ""
   #- Entrega 1:
-  #  - Diagrama Entidade Relacionamento: ""
-  #  - Modelo Entidade Relacionamento: ""
-  #  - Dicionário de Dados: ""
-  #  - Modelo Relacional: ""
+    - Diagrama Entidade Relacionamento: "modulo1/der.md"
+    - Modelo Entidade Relacionamento: "modulo1/mer.md"
+    - Dicionário de Dados: "modulo1/dd.md"
+    - Modelo Relacional: "modulo1/mr.md"
   #- Entrega 2:
   #  - Normalização: ""
   #  - Data Definition Language: ""
