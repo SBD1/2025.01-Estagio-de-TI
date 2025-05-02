@@ -1,5 +1,5 @@
 # 2025-01-Estagio-de-TI
-Jogo que ira retratar os passo de um aluno até conseguir um estágio de TI.
+Jogo que ira retratar os passos de um aluno até conseguir um estágio de TI.
 
 <div align="center"> <img src="docs/assets/imagens/download (4).png" height="auto" width="auto"/> </div>
 <div align="center">Repositório para desenvolvimento de um Estagiário que tera a jornada da Impressora ao Dev Sênior da disciplina de SBD1 - 2025.1</div>
@@ -95,3 +95,10 @@ Instale Software necessários
   - [Funcionamento do Jogo](./docs/modulo3/jogo.md)
   - [Triggers](./docs/modulo3/triggers.md)
   - [Stored Procedures](./docs/modulo3/procedimentos.md)
+
+
+## Histórico de Versão
+
+| Versão | Data | Descrição | Autor(es) | Revisor |
+| :-: | :-: | :-: | :-: | 
+| `1.0`  | 02/05/2025 | Primeira versão  do MER  | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi) |
