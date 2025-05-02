@@ -1,1 +1,43 @@
+repo_url: https://github.com/SBD1/2025.01-Estagio-de-TI
+repo_name: 2025.01-Estagio-de-TI
+site_url: https://github.com/SBD1/2025.01-Estagio-de-TI
+
 site_name: Estagiario de TI
+nav:
+  - Inicio: "index.md"
+  #- Apresentação:
+  #  - Apresentação 1: ""
+  #  - Apresentação 2: ""
+  #- Entrega 1:
+  #  - Diagrama Entidade Relacionamento: ""
+  #  - Modelo Entidade Relacionamento: ""
+  #  - Dicionário de Dados: ""
+  #  - Modelo Relacional: ""
+  #- Entrega 2:
+  #  - Normalização: ""
+  #  - Data Definition Language: ""
+  #  - Data Manipulation Language: ""
+  #  - Data Query Language: ""
+  #  - Algebra Relacional: ""
+  #  - Terminal: ""
+
+theme:
+  name: material
+  logo: assets/imagens/logo.png
+  favicon: assets/imagens/logo.png
+  features:
+    - navigation.tabs
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+      primary: green
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+      primary: green
