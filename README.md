@@ -182,13 +182,7 @@ Instale Software necessários
 
 ## 📎 Apresentações
 
-<div align="center">
-
-| Módulo | Link da gravação             | Data       |
-| ------ | ---------------------------- | ---------- |
-| 1      | [Apresentação Módulo 1](link) | ??/??/???? |
-| 2      | [Apresentação Módulo 2](link) | ??/??/???? |
-| 3      | [Apresentação Módulo 3](link) | ??/??/???? |
+As apresentações ficarão disponíveis [Neste Link](https://youtube.com/playlist?list=PL8iuGQf0VOAF4RWFvcqIQ0YvnS6gOvJd1&si=eJSDfYLw5dOZ8F7T), onde está localizada a playlist para os vídeos ao longo do semestre.
 
 </div>
 
