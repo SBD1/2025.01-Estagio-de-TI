@@ -6,9 +6,8 @@ site_name: Estagiario de TI
 nav:
   - Inicio: "index.md"
   - Apresentação:
-    - Apresentação 1: "apresentacao/modulo1.md"
-  #  - Apresentação 2: ""
-  #- Entrega 1:
+    - Apresentaçôes: "apresentacao/apresentacao.md"
+  - Entrega 1:
     - Diagrama Entidade Relacionamento: "modulo1/der.md"
     - Modelo Entidade Relacionamento: "modulo1/mer.md"
     - Dicionário de Dados: "modulo1/dd.md"
