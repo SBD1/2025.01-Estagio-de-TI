@@ -36,4 +36,5 @@ Abaixo está o nosso Diagrama Entidade-Relacionamento interativo:
 
 | Versão | Data | Descrição | Autor(es) | Revisor |
 | :-: | :-: | :-: | :-: | :-: |
-| `1.0`  | 02/05/2025 | Primeira versão  do MER  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi) | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr) |
+| `1.0`  | 02/05/2025 | Primeira versão  do DER  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi) | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr) |
+
