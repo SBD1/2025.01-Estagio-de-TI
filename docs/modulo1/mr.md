@@ -40,10 +40,9 @@ O Modelo Relacional oferece uma forma eficiente e lógica de organizar e acessar
 
 Abaixo está o nosso Modelo Relacional interativo:
 
-
+<iframe width="560" height="315" src="https://dbdiagram.io/e/681581a21ca52373f546c593/681585ef1ca52373f546f7b2"></iframe>
 
 [V1 do MR.]()
-
 
 ## Histórico de Versão
 
