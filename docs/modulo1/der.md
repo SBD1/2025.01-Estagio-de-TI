@@ -6,9 +6,9 @@ Essa abordagem visual facilita a compreensão da estrutura do banco de dados, pe
 
 #### **Principais Componentes**
 
-1. **Entidades:** Representam os objetos principais, como **Clientes**, **Produtos** ou **Pedidos**.  
-2. **Atributos:** São as características das entidades, como `nome`, `preço` ou `data`.  
-3. **Relacionamentos:** Indicam como as entidades estão conectadas, podendo ser:  
+1. **Entidades:** Representam os objetos principais, como **Personagem**, **Mochila** ou **Cafeteria**.  
+2. **Atributos:** São as características das entidades, como `nome`, `texto` ou `tipo`.  
+3. **Relacionamentos:** Indicam como as entidades estão conectadas, podendo ser:   
    - **1:1 (Um para Um):** Um usuário tem um perfil.  
    - **1:N (Um para Muitos):** Um autor escreve vários livros.  
    - **N:M (Muitos para Muitos):** Alunos cursam várias disciplinas.  
@@ -29,11 +29,12 @@ Em resumo, o Diagrama Entidade-Relacionamento é uma ferramenta poderosa no plan
 Abaixo está o nosso Diagrama Entidade-Relacionamento interativo:
 
 
-[V1 do DER.]()
+[V1 do DER.](https://app.diagrams.net/#G1z49a5ddfqbcUum7gDRnuclUJQ5udhLZf#%7B%22pageId%22%3A%22diagrama_jogo_estagiario_modificado%22%7D)
 
 
 ## Histórico de Versão
 
 | Versão | Data | Descrição | Autor(es) | Revisor |
 | :-: | :-: | :-: | :-: | :-: |
-| `1.0`  | 02/05/2025 | Primeira versão  do MER  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi) | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr) |
+| `1.0`  | 02/05/2025 | Primeira versão  do DER  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi) | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr) |
+

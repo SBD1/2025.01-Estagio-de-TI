@@ -23,7 +23,7 @@ Em resumo, o Modelo Entidade-Relacionamento é uma ferramenta essencial no plane
 - coins
 
 ### Mochila
-- *id_pc*
+- *id_prota*
 - ocupabilidade
 - qt_itens
 
