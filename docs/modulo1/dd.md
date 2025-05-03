@@ -36,184 +36,347 @@ Um dicionário de dados é um recurso essencial na área da ciência de dados e 
 
 </details>
 
-### Entidade: Personagem
-
-**Descrição**: Representa os personagens no jogo, podendo ser jogadores (PC) ou não jogadores (NPC).
-
-**Observação**: Esta tabela não possui chave estrangeira.
-
-| Nome Variável     | Tipo       | Descrição                                  | Valores Permitidos | Restrições de Domínio |
-|-------------------|------------|--------------------------------------------|--------------------|------------------------|
-| id_personagem     | int        | Código de identificação do personagem      | 1-1000             | PK, Not Null           |
-| nome              | varchar(50)| Nome associado ao personagem               | a-z, A-Z           | Not Null               |
-| descricao         | varchar(50)| Descrição do personagem                    | a-z, A-Z           | Not Null               |
-| tipo              | enum       | Tipo de personagem                         | 'PC', 'NPC'        | Not Null               |
-
-
-#### PC
-
-**Descrição**: Contém informações específicas dos personagens jogáveis.
-
-**Observação**: Esta tabela contém chave estrangeira da tabela Sala.
-
-| Nome Variável     | Tipo       | Descrição                                  | Valores Permitidos | Restrições de Domínio |
-|-------------------|------------|--------------------------------------------|--------------------|------------------------|
-| hp                | int        | Ponto de vida do pc                        | 0-1000             | Not Null               |
-| mp                | int        | Pontos de mana do pc                       | 0-1000             | Not Null               |
-| xp                | int        | Ponto de experiência do pc                 | 0-1000             | Not Null               |
-| absorcao          | int        | Redução do dano que o pc recebe            | 0-1000             | Not Null               |
-| atk               | int        | Quantidade de dano básica do pc            | 0-1000             | Not Null               |
-| lvl               | int        | Level do pc                                | 1-1000             | Not Null               |
-| luck              | int        | Indica a sorte do pc                       | 0-1000             | Not Null               |
-| combat_status     | enum       | Indica o estado do pc                      | 'Confuso', 'Envenenado', 'Normal' |Not Null |
-| coins             | int        | Indica a quantidaade de moedas do pc       | 0-1000             | Not Null               |
-| id_sala           | int        | Indica a sala em o pc está                 | 1-1000             | FK, Not Null           |
-
-
-#### NPC
-
-**Descrição**: Contém informações específicas dos personagens não jogáveis.
-
-**Observação**: Esta tabela não contém chave estrangeira.
-
-| Nome Variável     | Tipo       | Descrição                                  | Valores Permitidos | Restrições de Domínio |
-|-------------------|------------|--------------------------------------------|--------------------|------------------------|
-| tipo              | varchar(50)| Indica o tipo de NPC                       | a-z, A-Z           | Not Null               |
-
-##### Mercador
-
-**Descrição**: NPC que comercializa itens.
-
-**Observação**: Esta tabela contém chave estrangeira da tabela Sala.
-
-| Nome Variável     | Tipo       | Descrição                                  | Valores Permitidos | Restrições de Domínio |
-|-------------------|------------|--------------------------------------------|--------------------|------------------------|
-| id_sala           | int        | Indica a sala em que o mercador está       | 1-1000             | FK, Not Null           |
-
-##### Contratante
-
-**Descrição**: NPC que fornece contratos para o jogador.
-
-**Observação**: Esta tabela contém chave estrangeira da tabela Sala.
-
-| Nome Variável     | Tipo       | Descrição                                  | Valores Permitidos | Restrições de Domínio |
-|-------------------|------------|--------------------------------------------|--------------------|------------------------|
-| id_sala           | int        | Indica a sala em que o contratante está    | 1-1000             | FK, Not Null           |
-
-##### Inimigo
-
-**Descrição**: NPC que participa de combates com o jogador.
-
-**Observação**: Esta tabela não possui chaves estrangeiras.
-
-| Nome Variável     | Tipo       | Descrição                                  | Valores Permitidos | Restrições de Domínio |
-|-------------------|------------|--------------------------------------------|--------------------|------------------------|
-| hp                | int        | Pontos de vida do inimigo                  | 1-1000             | Not Null               |
-| xp                | int        | Pontos de experiência fornecidos ao derrotar o inimigo | 1-1000 | Not Null               |
-| absorcao          | int        | Redução do dano que o inimigo recebe       | 1-1000             | Not Null               |
-| atk               | int        | Dano básico causado pelo inimigo           | 1-1000             | Not Null               |
-| habilidade        | int        | Acréscimo no dano básico do inimigo        | 1-1000             | Not Null               |
-
-##### Chefe
-
-**Descrição**: NPC mais desafiador, geralmente finalizando uma região ou missão.
-
-**Observação**: Esta tabela contém chaves estrangeiras das tabelas Sala e Item.
-
-| Nome Variável     | Tipo       | Descrição                                  | Valores Permitidos | Restrições de Domínio |
-|-------------------|------------|--------------------------------------------|--------------------|------------------------|
-| hp                | int        | Pontos de vida do chefe                    | 1-1000             | Not Null               |
-| xp                | int        | Pontos de experiência fornecidos ao derrotar o chefe  | 1-1000  | Not Null               |
-| lvl               | int        | Nível do chefe                             | 1-1000             | Not Null               |
-| combat_status     | enum       | Indica o estado do chefe                   | 'Confuso', 'Envenenado', 'Normal' |Not Null |
-| absorcao          | int        | Redução do dano que o chefe recebe         | 1-1000             | Not Null               |
-| atk               | int        | Dano básico causado pelo inimigo           | 1-1000             | Not Null               |
-| item_especial     | int        | Item dropado pelo chefe                    | 1-1000             | FK, Not Null           |
-| id_sala           | int        | Indica a sala em que o chefe está          | 1-1000             | FK, Not Null           |
 
 ---
 
-### Entidade: Instância Inimigo
+### Entidade: **Personagem**
+**Descrição:** Representa os personagens do jogo.
 
-**Descrição**: Uma instância de NPC inimigo representa um personagem não jogável que atua como oponente no jogo. 
-Essa instância é responsável por gerenciar as interações do inimigo com o ambiente, outros NPCs e o jogador, 
-desempenhando um papel essencial na mecânica e na dinâmica de combate do jogo.
-
-**Observação**: Esta tabela contém chaves estrangeiras das tabelas Sala e Inimigo.
-
-| Nome Variável     | Tipo       | Descrição                                  | Valores Permitidos | Restrições de Domínio |
-|-------------------|------------|--------------------------------------------|--------------------|------------------------|
-| id_instancia      | int        | Código de identificação da instância de inimigo    | 1-1000     | PK, Not Null           |
-| id_inimigo        | int        | Código de identificação do inimigo         | 1-1000             | FK, Not Null           |
-| id_sala           | int        | Código de identificação da sala que a instância de inimigo está | 1-1000  | FK, Not Null |
-| vida_atual        | int| Vida atual da instância de inimigo                 | 1-1000             | Not Null               |
-| absorcao          | int       | Redução do dano que a instância de inimigo recebe  | 1-1000      | Not Null               |
-| atk               | int | Dano básico causado pela isntância de inimigo     | 1-1000             | Not Null               |
-| habilidade        | int    | Acréscimo no dano básico do inimigo            | 1-1000             | Not Null               |
-| combat_status     | enum       | Indica o estado do chefe                   | 'Confuso', 'Envenenado', 'Normal' |Not Null |
+| Nome Variável      | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|--------------------|-------|-------------------------------|--------------------|------------------------|
+| id_personagem      | int   | Código de identificação do personagem | 1-1000            | PK, Not Null          |
+| nome               | varchar | Nome do personagem            | 1-255 caracteres   | Not Null               |
+| descrição          | text  | Descrição do personagem       | Livre              | Nullable               |
 
 ---
 
-### Entidade: Checkpoint
+### Entidade: **Sala**
+**Descrição:** Representa as salas disponíveis no jogo.
 
-**Descrição**: é um marco no progresso do jogador dentro do jogo, utilizado para salvar o estado atual e permitir que o jogador continue a partir desse ponto em caso de derrota ou ao retornar ao jogo.
-
-**Observação**: Esta tabela contém cahves estrangeiras das tabelas Sala e PC.
-
-| Nome Variável     | Tipo           | Descrição                                    | Valores Permitidos         | Restrições de Domínio      |
-|-------------------|----------------|----------------------------------------------|----------------------------|----------------------------|
-| id_checkpoint     | int            | Identificador único do checkpoint            | 1-1000                     | PK, Not Null               |
-| id_sala           | int            | Referência à sala onde o checkpoint está     | 1-1000                     | FK, Not Null               |
-| id_pc             | int            | Referência ao personagem jogável associado   | 1-1000                     | FK, Not Null               |
+| Nome Variável      | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|--------------------|-------|-------------------------------|--------------------|------------------------|
+| id_sala            | int   | Código de identificação da sala | 1-1000            | PK, Not Null          |
+| nome               | varchar | Nome da sala                 | 1-255 caracteres   | Not Null               |
+| descrição          | text  | Descrição da sala            | Livre              | Nullable               |
 
 ---
 
-### Entidade: Bibliotacas
+### Entidade: **Missão**
+**Descrição:** Representa as missões que os jogadores podem realizar.
 
-**Descrição**: Bibliotacas contidos no jogo
-
-**Observação**: Esta entidade irá armazenas os livros ou conteudos que o jogo oferece, tendo chave estrangeira na tabela Instância item
-
-| Nome Variável     | Tipo       | Descrição                                  | Valores Permitidos | Restrições de Domínio |
-|-------------------|------------|--------------------------------------------|--------------------|------------------------|
-| id_Bibliotacas    | int        | Código de identificação da Bibliotaca      | 1-1000             | PK, Not Null           |
-| itens             | int        | Código de instância de itens               | 1-1000             | FK, Not Null           |
-
-
+| Nome Variável      | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|--------------------|-------|-------------------------------|--------------------|------------------------|
+| id_missao          | int   | Código de identificação da missão | 1-1000            | PK, Not Null          |
+| nome               | varchar | Nome da missão               | 1-255 caracteres   | Not Null               |
+| descrição          | text  | Descrição da missão          | Livre              | Nullable               |
 
 ---
 
-### Entidade: Bibliotacas
+### Entidade: **Tarefa**
+**Descrição:** Representa as tarefas que compõem as missões.
 
-**Descrição**: Bibliotacas contidas nas salas
-
-**Observação**: Esta entidade irá armazenas as Bibliotacas em suas salas, tendo chave estrangeira nas tabelas Bibliotacas e Sala
-
-| Nome Variável     | Tipo       | Descrição                                  | Valores Permitidos | Restrições de Domínio |
-|-------------------|------------|--------------------------------------------|--------------------|------------------------|
-| id_sala           | int        | Código de identificação da sala            | 1-1000             | PK,FK, Not Null        |
-| id_Bibliotacas    | int        | Código de identificação da Bibliotacas     | 1-1000             | PK,FK, Not Null        |
+| Nome Variável      | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|--------------------|-------|-------------------------------|--------------------|------------------------|
+| id_tarefa          | int   | Código de identificação da tarefa | 1-1000            | PK, Not Null          |
+| descrição          | text  | Descrição da tarefa          | Livre              | Nullable               |
 
 ---
 
-### Entidade: Sala 
+### Entidade: **Item**
+**Descrição:** Representa os itens disponíveis no jogo.
 
-**Descrição**: A sala é contido nas regiões
-
-**Observação**: Esta entidade irá armazenas as salas contidas do game, tendo chaves estrangeiras contidas nas tabelas Sala e Região
-
-| Nome Variável     | Tipo       | Descrição                                  | Valores Permitidos | Restrições de Domínio |
-|-------------------|------------|--------------------------------------------|--------------------|------------------------|
-| id_sala           | int        | Código de identificação da sala            | 1-1000             | PK, Not Null           |
-| id_sala_conectada | int        | Código de identificação da sala conectada  | 1-1000             | FK, Not Null           |
-| id_regiao         | int        | Código de identificação da regiao          | 1-1000             | FK, Not Null           |
-| nome              | varchar(200) | nome da sala                             | a-z, A-Z           |Not Null                |
-| descricao             | varchar(200) | descrição da sala                    | a-z, A-Z           |Not Null                |
-
+| Nome Variável      | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|--------------------|-------|-------------------------------|--------------------|------------------------|
+| id_item            | int   | Código de identificação do item | 1-1000            | PK, Not Null          |
+| nome               | varchar | Nome do item                 | 1-255 caracteres   | Not Null               |
+| descrição          | text  | Descrição do item            | Livre              | Nullable               |
+| preço              | float | Preço do item                | >= 0               | Nullable               |
+| eh_unico           | bool  | Indica se o item é único     | true/false         | Default: false         |
 
 ---
 
+### Entidade: **Instância Item**
+**Descrição:** Representa instâncias específicas dos itens no jogo.
 
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_instancia_item    | int   | Código de identificação da instância | 1-1000        | PK, Not Null          |
+| id_item              | int   | Código de identificação do item | 1-1000            | FK, Not Null          |
+| id_sala              | int   | Código de identificação da sala | 1-1000            | FK, Not Null          |
+
+---
+
+### Entidade: **Cafeteria**
+**Descrição:** Representa a cafeteria do jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_cafeteria         | int   | Código de identificação da cafeteria | 1-1000        | PK, Not Null          |
+| itens_disponiveis    | text  | Lista de itens disponíveis    | Livre              | Nullable               |
+| aberta               | bool  | Indica se a cafeteria está aberta | true/false     | Default: true          |
+
+---
+
+### Entidade: **Prédio**
+**Descrição:** Representa os prédios do jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_predio            | int   | Código de identificação do prédio | 1-1000          | PK, Not Null          |
+| nome                 | varchar | Nome do prédio               | 1-255 caracteres   | Not Null               |
+
+---
+
+### Entidade: **Andar**
+**Descrição:** Representa os andares dos prédios.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_andar             | int   | Código de identificação do andar | 1-1000           | PK, Not Null          |
+| numero               | int   | Número do andar               | >= 0               | Not Null               |
+| restrito             | bool  | Indica se o andar é restrito  | true/false         | Default: false         |
+
+---
+
+### Entidade: **Mundo**
+**Descrição:** Representa o mundo do jogo, que contém diversos elementos como prédios e salas.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_mundo             | int   | Código de identificação do mundo | 1-1000          | PK, Not Null          |
+| nome                 | varchar | Nome do mundo                | 1-255 caracteres   | Not Null               |
+| descrição            | text  | Descrição do mundo            | Livre              | Nullable               |
+
+---
+
+### Entidade: **Colegas de Trabalho**
+**Descrição:** Representa os colegas de trabalho no ambiente do jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_colega            | int   | Código de identificação do colega | 1-1000          | PK, Not Null          |
+| nome                 | varchar | Nome do colega               | 1-255 caracteres   | Not Null               |
+| cargo                | varchar | Cargo do colega              | 1-255 caracteres   | Nullable               |
+
+---
+
+### Entidade: **Demanda**
+**Descrição:** Representa demandas específicas que precisam ser atendidas no jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_demanda           | int   | Código de identificação da demanda | 1-1000         | PK, Not Null          |
+| descrição            | text  | Descrição da demanda          | Livre              | Nullable               |
+| prioridade           | int   | Nível de prioridade da demanda | 1-5               | Default: 3            |
+
+---
+
+### Entidade: **Checkpoint**
+**Descrição:** Representa pontos de salvamento ou progresso no jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_checkpoint        | int   | Código de identificação do checkpoint | 1-1000      | PK, Not Null          |
+| localização          | varchar | Localização do checkpoint    | 1-255 caracteres   | Not Null               |
+| ativo                | bool  | Indica se o checkpoint está ativo | true/false     | Default: true          |
+
+---
+
+### Entidade: **Missão Contém**
+**Descrição:** Representa a relação entre missões e tarefas.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_missao            | int   | Código de identificação da missão | 1-1000          | PK, FK, Not Null       |
+| id_tarefa            | int   | Código de identificação da tarefa | 1-1000          | PK, FK, Not Null       |
+
+---
+
+### Entidade: **Consumíveis**
+**Descrição:** Representa itens consumíveis disponíveis no jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_consumivel        | int   | Código de identificação do consumível | 1-1000      | PK, Not Null          |
+| nome                 | varchar | Nome do consumível           | 1-255 caracteres   | Not Null               |
+| quantidade           | int   | Quantidade disponível         | >= 0               | Nullable               |
+
+---
+
+### Entidade: **Hardware**
+**Descrição:** Representa equipamentos de hardware disponíveis no jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_hardware          | int   | Código de identificação do hardware | 1-1000         | PK, Not Null          |
+| nome                 | varchar | Nome do hardware             | 1-255 caracteres   | Not Null               |
+| especificações       | text  | Detalhes técnicos do hardware | Livre              | Nullable               |
+
+---
+
+### Entidade: **Chefe**
+**Descrição:** Representa os chefes ou inimigos principais do jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_chefe             | int   | Código de identificação do chefe | 1-1000           | PK, Not Null          |
+| nome                 | varchar | Nome do chefe                | 1-255 caracteres   | Not Null               |
+| poder                | varchar | Poder ou habilidade especial | 1-255 caracteres   | Nullable               |
+
+---
+
+### Entidade: **Prédio Contém**
+**Descrição:** Representa a relação entre prédios e seus andares.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_predio            | int   | Código de identificação do prédio | 1-1000          | PK, FK, Not Null       |
+| id_andar             | int   | Código de identificação do andar | 1-1000           | PK, FK, Not Null       |
+
+---
+
+### Entidade: **Cafeteria Contém**
+**Descrição:** Representa a relação entre a cafeteria e os itens disponíveis.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_cafeteria         | int   | Código de identificação da cafeteria | 1-1000        | PK, FK, Not Null       |
+| id_item              | int   | Código de identificação do item | 1-1000            | PK, FK, Not Null       |
+
+---
+
+### Entidade: **Tarefa Envolve**
+**Descrição:** Representa a relação entre tarefas e missões.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_tarefa            | int   | Código de identificação da tarefa | 1-1000          | PK, FK, Not Null       |
+| id_missao            | int   | Código de identificação da missão | 1-1000          | PK, FK, Not Null       |
+
+---
+
+Vamos continuar detalhando as entidades restantes até concluirmos todas. 
+
+---
+
+### Entidade: **Jogador**
+**Descrição:** Representa os jogadores do jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_jogador           | int   | Código de identificação do jogador | 1-1000         | PK, Not Null          |
+| nome                 | varchar | Nome do jogador              | 1-255 caracteres   | Not Null               |
+| nível                | int   | Nível atual do jogador        | >= 0               | Default: 1            |
+| experiência          | float | Experiência acumulada         | >= 0               | Default: 0            |
+
+---
+
+### Entidade: **Habilidades**
+**Descrição:** Representa as habilidades que podem ser adquiridas ou utilizadas pelos jogadores.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_habilidade        | int   | Código de identificação da habilidade | 1-1000      | PK, Not Null          |
+| nome                 | varchar | Nome da habilidade           | 1-255 caracteres   | Not Null               |
+| descrição            | text  | Descrição da habilidade       | Livre              | Nullable               |
+| custo                | float | Custo para adquirir ou usar a habilidade | >= 0       | Nullable               |
+
+---
+
+### Entidade: **Inventário**
+**Descrição:** Representa o inventário dos jogadores, contendo os itens que possuem.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_inventario        | int   | Código de identificação do inventário | 1-1000        | PK, Not Null          |
+| id_jogador           | int   | Código de identificação do jogador | 1-1000         | FK, Not Null          |
+| id_item              | int   | Código de identificação do item | 1-1000            | FK, Not Null          |
+| quantidade           | int   | Quantidade do item no inventário | >= 0             | Default: 0            |
+
+---
+
+### Entidade: **NPC**
+**Descrição:** Representa os NPCs (personagens não jogáveis) do jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_npc               | int   | Código de identificação do NPC | 1-1000            | PK, Not Null          |
+| nome                 | varchar | Nome do NPC                  | 1-255 caracteres   | Not Null               |
+| função               | varchar | Função ou papel do NPC        | 1-255 caracteres   | Nullable               |
+| diálogo              | text  | Diálogo padrão do NPC         | Livre              | Nullable               |
+
+---
+
+### Entidade: **Recompensa**
+**Descrição:** Representa as recompensas que os jogadores podem receber ao completar missões ou tarefas.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_recompensa        | int   | Código de identificação da recompensa | 1-1000        | PK, Not Null          |
+| tipo                 | varchar | Tipo da recompensa           | "item", "moeda", "experiência" | Not Null |
+| valor                | float | Valor da recompensa           | >= 0               | Nullable               |
+
+---
+
+### Entidade: **Moeda**
+**Descrição:** Representa a moeda do jogo utilizada para transações.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_moeda             | int   | Código de identificação da moeda | 1-1000           | PK, Not Null          |
+| nome                 | varchar | Nome da moeda                | 1-255 caracteres   | Not Null               |
+| valor_base           | float | Valor base da moeda           | >= 0               | Default: 1            |
+
+---
+
+### Entidade: **Quests**
+**Descrição:** Representa as quests que os jogadores podem realizar, que podem ser compostas por múltiplas missões.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_quest             | int   | Código de identificação da quest | 1-1000           | PK, Not Null          |
+| nome                 | varchar | Nome da quest                | 1-255 caracteres   | Not Null               |
+| descrição            | text  | Descrição da quest            | Livre              | Nullable               |
+
+---
+
+### Entidade: **Jogador Completa**
+**Descrição:** Representa a relação entre jogadores e missões ou quests que completaram.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_jogador           | int   | Código de identificação do jogador | 1-1000         | PK, FK, Not Null       |
+| id_quest             | int   | Código de identificação da quest | 1-1000           | PK, FK, Nullable       |
+| id_missao            | int   | Código de identificação da missão | 1-1000          | PK, FK, Nullable       |
+| data_conclusao       | date  | Data de conclusão             | YYYY-MM-DD         | Nullable               |
+
+---
+
+### Entidade: **Log de Eventos**
+**Descrição:** Representa o registro de eventos que ocorrem no jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_evento            | int   | Código de identificação do evento | 1-1000          | PK, Not Null          |
+| id_jogador           | int   | Código de identificação do jogador | 1-1000         | FK, Nullable           |
+| tipo_evento          | varchar | Tipo de evento               | "missão", "compra", "batalha", etc. | Not Null |
+| descrição            | text  | Descrição do evento           | Livre              | Nullable               |
+| data_hora            | datetime | Data e hora do evento        | YYYY-MM-DD HH:MM:SS | Not Null               |
+
+---
+
+### Entidade: **Batalhas**
+**Descrição:** Representa as batalhas que ocorrem no jogo.
+
+| Nome Variável        | Tipo  | Descrição                     | Valores Permitidos | Restrições de Domínio |
+|----------------------|-------|-------------------------------|--------------------|------------------------|
+| id_batalha           | int   | Código de identificação da batalha | 1-1000         | PK, Not Null          |
+| id_jogador           | int   | Código de identificação do jogador | 1-1000         | FK, Not Null           |
+| id_chefe             | int   | Código de identificação do chefe | 1-1000           | FK, Not Null           |
+| resultado            | varchar | Resultado da batalha         | "vitória", "derrota" | Not Null              |
+| data_hora            | datetime | Data e hora da batalha       | YYYY-MM-DD HH:MM:SS | Not Null               |
+
+---
 
 
 
@@ -222,4 +385,4 @@ desempenhando um papel essencial na mecânica e na dinâmica de combate do jogo.
 | Versão | Data | Descrição | Autor(es) | Revisor |
 | :-: | :-: | :-: | :-: | :-: |
 | `1.0`  | 02/05/2025 | Primeira versão  do MER  | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi) |
-
+| `1.1`  | 02/05/2025 | adição de intem do DD  | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)  |  |
