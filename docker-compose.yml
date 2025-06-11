@@ -1,18 +1,19 @@
 version: '3.8'
 
 services:
-  db:
+  banco_de_dados:
     image: postgres:15  
-    container_name: Estagio_TI
+    container_name: banco_de_dados
     environment:
       POSTGRES_USER: jogador
-      POSTGRES_PASSWORD: "22312"
+      POSTGRES_PASSWORD: 22312
       POSTGRES_DB: jogo
     ports:
-      - "5432:5432"    
+      - "6000:6000"    
     volumes:
       - postgres_data:/var/lib/postgresql/data 
-      - ./src:/docker-entrypoint-initdb.d 
+      
+  
 
 volumes:
   postgres_data:
