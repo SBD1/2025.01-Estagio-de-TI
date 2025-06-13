@@ -10,11 +10,11 @@ Mas para isso, você precisa provar seu valor — começando pelo básico (as ta
 Cada *andar do prédio* representa uma etapa da sua evolução dentro da empresa, e para avançá-los o nosso estagiário terá que passar pelos maiores inimigos de um estagiário dentro de uma empresa, como: O dev júnior que se acha sênior, o estagiário que tem certeza que é melhor que todo mundo, e muitos outros vilões para conseguir ser contratado.
 
 ### Como o jogo funciona?
-O jogo "Estagiário: Da Impressora ao Dev Sênior" segue a jornada de um estagiário que precisa progredir em uma empresa, partindo do subsolo (almoxarifado) até chegar à cobertura (RH e Diretoria).
+O jogo "Estagiário: Da Impressora ao Dev Sênior" segue a jornada de um estagiário que precisa progredir em uma empresa, partindo doo andares mais baixos visando conseguir chegar à cobertura (RH e Diretoria).
 
-- **Exploração e Combate**: No subsolo, o estagiário encontra itens úteis, como peças e ferramentas. No térreo (recepção), ele recebe as missões iniciais e interage com personagens que o orientam. Nos andares de 1 a 9, cada um com um tema diferente, o estagiário deve completar as missões disponíveis, ganhando XP e moedas.
+- **Exploração e Combate**: No almoxarifado, o estagiário encontra itens úteis, como itens de ataque (periféricos para o seu computador), e de defesa (vestimentas). No térreo (recepção), ele recebe as missões iniciais e interage com personagens que o orientam. Nos andares de 1 a 9, cada um com um tema diferente, o estagiário deve completar as missões disponíveis, ganhando XP (QI) e moedas (dinheiro).
 
-- **Power-ups e Armas Secundárias**:Fora da empresa, na cafeteria, o estagiário pode comprar power-ups, como café e energéticos, que lhe conferem efeitos temporários. Finalmente, na cobertura, o estagiário enfrenta o desafio final: uma entrevista de emprego e a realização de um projeto completo, utilizando as habilidades desbloqueadas ao longo do jogo. Ao concluir essa etapa, o estagiário se torna um desenvolvedor sênior.
+- **Power-ups e Armas Secundárias**:Fora da empresa, na cafeteria, o estagiário pode comprar power-ups, como café e energéticos, que lhe conferem efeitos de aumento de stamina. Finalmente, na cobertura, o estagiário enfrenta o desafio final: uma entrevista de emprego e a realização de um projeto completo, utilizando as habilidades desbloqueadas ao longo do jogo. Ao concluir essa etapa, o estagiário se torna um desenvolvedor sênior.
 
 ## Contribuidores
 
@@ -61,3 +61,4 @@ O jogo "Estagiário: Da Impressora ao Dev Sênior" segue a jornada de um estagi�
 | Versão | Data | Descrição | Autor(es) | Revisor |
 | :-: | :-: | :-: | :-: | :-: |
 | `1.0`  | 02/05/2025 | Primeira versão  do MER  | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi) |
+| `1.1`  | 13/06/2025 | Primeira versão  do MER  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi)  |  |
