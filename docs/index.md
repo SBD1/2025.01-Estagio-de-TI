@@ -5,9 +5,9 @@
 
 ## Jogo
 
-um jovem estagiário de TI cheio de sonhos. Seu objetivo? Ser contratado como Desenvolvedor Júnior numa das maiores empresas de tecnologia da cidade.  
-Mas para isso, você precisa provar seu valor — começando pelo básico (como instalar impressoras e arrumar cabos) até tarefas cada vez mais desafiadoras (programar sistemas, integrar APIs, criar bancos de dados).  
-Cada *andar do prédio* representa uma etapa da sua evolução dentro da empresa!
+um jovem estagiário de TI cheio de sonhos. Seu objetivo? Ser contratado como Desenvolvedor Júnior em uma das maiores empresas de tecnologia do Brasil.  
+Mas para isso, você precisa provar seu valor — começando pelo básico (as tarefas de estagiário que todos nós conhecemos).
+Cada *andar do prédio* representa uma etapa da sua evolução dentro da empresa, e para avançá-los o nosso estagiário terá que passar pelos maiores inimigos de um estagiário dentro de uma empresa, como: O dev júnior que se acha sênior, o estagiário que tem certeza que é melhor que todo mundo, e muitos outros vilões para conseguir ser contratado.
 
 ### Como o jogo funciona?
 O jogo "Estagiário: Da Impressora ao Dev Sênior" segue a jornada de um estagiário que precisa progredir em uma empresa, partindo do subsolo (almoxarifado) até chegar à cobertura (RH e Diretoria).
