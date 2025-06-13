@@ -2,18 +2,19 @@ version: '3.8'
 
 services:
   banco_de_dados:
-    image: postgres:15  
+    image: postgres:15
     container_name: banco_de_dados
     environment:
       POSTGRES_USER: jogador
-      POSTGRES_PASSWORD: 22312
+      POSTGRES_PASSWORD: sbd1_password
       POSTGRES_DB: jogo
     ports:
-      - "6000:6000"    
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data 
-      
-  
+      # A linha abaixo é essencial
+      - ./DDL.sql:/docker-entrypoint-initdb.d/1_DDL.sql
+      - ./DML.sql:/docker-entrypoint-initdb.d/2_DML.sql
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
   postgres_data:
