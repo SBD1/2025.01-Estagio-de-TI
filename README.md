@@ -162,7 +162,18 @@ mkdocs serve
 
 
 ### Como jogar?
-Instale as dependências
+
+Primeiramente é necessário  clonar o repositório com o seguinte comando no terminal
+
+```
+# Para ter o repositório localmente
+git clone https://github.com/SBD1/2025.01-Estagio-de-TI.git
+
+# Diretório correto
+cd 2025.01-Estagio-de-TI
+
+```
+Após entrar no diretório raíz, será necessário instalar as dependências do projeto
 ```
 sudo apt install python3.10.12
 
@@ -175,10 +186,26 @@ source env/bin/activate
 # Instalação das dependências
 pip install -r requirements.txt
 
+
+```
+
+Após a instalação das dependências, será necessário instalar o docker Compose V1 e depois instalar o plugin Docker compose V2.
+
+Com Tudo preparado basta apenas rodar os seguintes comandos no terminal
+```
+# subindo container do banco
+docker compose up -d
+
+# Iniciando jogo
+python3 jogo.py
+
+# liberando container (quando parar de jogar)
+docker compose down
+
 ```
 Instale Software necessários 
 - [VsCode](https://code.visualstudio.com/download) ou IDE de preferência
-- [PostgreSQL no Linux](https://www.hostinger.com.br/tutoriais/instalar-postgresql-ubuntu-20-04) ou [PostgreSQL no Windows](https://forum.casadodesenvolvedor.com.br/topic/46698-como-instalar-o-banco-de-dados-postgresql-no-windows/)
+- [PostgreSQL no Linux](https://www.hostinger.com.br/tutoriais/instalar-postgresql-ubuntu-20-04) ou [PostgreSQL no Windows](https://forum.casadodesenvolvedor.com.br/topic/46698-como-instalar-o-banco-de-dados-postgresql-no-windows/) (necessário sem o uso do docker)
 
 ## 📎 Apresentações
 
@@ -214,3 +241,4 @@ As apresentações ficarão disponíveis [Neste Link](https://youtube.com/playli
 | Versão | Data | Descrição | Autor(es) | Revisor |
 | :-: | :-: | :-: | :-: | :-: |
 | `1.0`  | 02/05/2025 | Primeira versão  do MER  | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)  | [Gabriel Basto Bertolazi](https://github.com/Bertolazi) |
+| `1.1`  | 08/06/2025 | Adicionando guia para executar o jogo  |  [Lucas Mendonça Arruda](https://github.com/lucasarruda9)  | [Caio Mesquita Vieira](https://github.com/Caiomesvie)  |

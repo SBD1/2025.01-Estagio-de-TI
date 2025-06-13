@@ -1,0 +1,18 @@
+services:
+  banco_de_dados:
+    image: postgres:15
+    container_name: banco_de_dados
+    environment:
+      POSTGRES_USER: jogador
+      POSTGRES_PASSWORD: sbd1_password
+      POSTGRES_DB: jogo
+    ports:
+      - "5432:5432"
+    volumes:
+      # Mapeia nosso script de inicialização único para a pasta correta no container
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      # Mantém o volume para persistir os dados
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
