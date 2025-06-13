@@ -1,6 +1,7 @@
 import os
 import time
 from database import call_db_function, get_all_characters
+from database import call_db_function, get_all_characters, get_location_details
 
 def clear_screen():
     """Limpa a tela do terminal."""
@@ -54,34 +55,72 @@ def iniciar_jogo():
         time.sleep(2)
 
 def game_loop(personagem_id, personagem_nome):
-    """O loop principal do jogo, onde o jogador interage com o mundo."""
+    """O loop principal do jogo, com menu de opções numérico."""
     clear_screen()
     print(f"Iniciando o jogo com {personagem_nome}...")
     time.sleep(2)
 
-    # Pega a descrição inicial do local do personagem
-    descricao_local = call_db_function('descrever_local_atual', personagem_id)
-
     while True:
         clear_screen()
-        print(f"--- {personagem_nome} ---")
-        print(descricao_local)
-        print("\n--------------------")
         
-        # O comando do jogador é a direção para onde ele quer ir
-        comando = input("\nO que você faz? (digite uma saída ou 'sair' para voltar ao menu)\n> ").strip().lower()
+        # 1. Pega os detalhes estruturados do local atual
+        location_details = get_location_details(personagem_id)
 
-        if comando == 'sair':
-            print("\nVoltando ao menu principal...")
-            time.sleep(2)
+        if not location_details:
+            print("Erro ao carregar o local. Voltando ao menu.")
+            time.sleep(3)
             break
-        elif not comando:
-            continue
         
-        # Chama a função SQL para mover o personagem
-        # O banco de dados retorna a nova descrição ou uma mensagem de erro
-        resultado_movimento = call_db_function('mover_personagem', personagem_id, comando)
-        descricao_local = resultado_movimento
+        nome_sala, descricao_sala, saidas_disponiveis = location_details
+
+        # 2. Exibe as informações do local
+        print(f"--- {personagem_nome} ---")
+        print(f"Você está em: {nome_sala}")
+        print(descricao_sala)
+        print("\n--------------------")
+        print("O que você faz?\n")
+
+        # Garante que 'saidas_disponiveis' não seja None. Se for, é uma lista vazia.
+        saidas_disponiveis = saidas_disponiveis or []
+        
+        # 3. Exibe o menu de opções numerado
+        for i, saida in enumerate(saidas_disponiveis, start=1):
+            print(f"  [{i}] {saida}")
+        
+        # Adiciona a opção de sair
+        print(f"  [{len(saidas_disponiveis) + 1}] Voltar ao menu principal")
+        print("\n--------------------")
+
+        # 4. Pega e processa a escolha do jogador
+        try:
+            escolha_str = input("Sua escolha: ").strip()
+            if not escolha_str: continue # Se o usuário só apertar Enter, repete o loop
+
+            escolha_num = int(escolha_str)
+            
+            # Opção de sair do jogo
+            if escolha_num == len(saidas_disponiveis) + 1:
+                print("\nVoltando ao menu principal...")
+                time.sleep(2)
+                break
+            
+            # Opção de movimento válida
+            elif 1 <= escolha_num <= len(saidas_disponiveis):
+                # Pega o nome da saída escolhida da lista
+                direcao_escolhida = saidas_disponiveis[escolha_num - 1]
+                
+                # Chama a função de movimento original
+                print(f"\nTentando: {direcao_escolhida}...")
+                call_db_function('mover_personagem', personagem_id, direcao_escolhida)
+                time.sleep(1) # Pequena pausa para o jogador ler
+            
+            else:
+                print("\nOpção inválida. Tente novamente.")
+                time.sleep(2)
+
+        except ValueError:
+            print("\nPor favor, digite um número. Tente novamente.")
+            time.sleep(2)
 
 
 def main_menu():

@@ -45,3 +45,26 @@ def get_all_characters():
     finally:
         if conn: conn.close()
     return characters
+
+def get_location_details(personagem_id):
+    """
+    Chama a função 'descrever_local_detalhado' e retorna os detalhes
+    da sala de forma estruturada (nome, descricao, lista_de_saidas).
+    """
+    details = None
+    conn = get_connection()
+    if not conn:
+        return None
+
+    try:
+        with conn.cursor() as cur:
+            # Chama a nova função
+            cur.execute("SELECT * FROM SBD1.descrever_local_detalhado(%s);", (personagem_id,))
+            # Pega a linha inteira de resultado (nome, desc, saidas_array)
+            details = cur.fetchone()
+    except Exception as e:
+        print(f"Erro ao buscar detalhes do local: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return details

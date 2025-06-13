@@ -59,3 +59,34 @@ INSERT INTO SBD1.Conexao (id_sala_origem, id_sala_destino, nome_saida) VALUES
 CREATE OR REPLACE FUNCTION SBD1.criar_personagem(p_nome_personagem VARCHAR(100)) RETURNS TEXT AS $$ DECLARE v_mensagem TEXT; BEGIN INSERT INTO SBD1.Personagem(nome, id_sala_atual) VALUES (p_nome_personagem, 1) RETURNING 'Personagem "' || p_nome_personagem || '" criado com sucesso!' INTO v_mensagem; RETURN v_mensagem; EXCEPTION WHEN unique_violation THEN RETURN 'Erro: Já existe um personagem com este nome.'; WHEN OTHERS THEN RETURN 'Erro inesperado ao criar personagem.'; END; $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION SBD1.descrever_local_atual(p_id_personagem INT) RETURNS TEXT AS $$ DECLARE v_descricao_sala TEXT; v_nome_sala_atual VARCHAR(100); v_saidas_disponiveis TEXT; v_id_sala_atual INT; BEGIN SELECT P.id_sala_atual INTO v_id_sala_atual FROM SBD1.Personagem P WHERE P.id = p_id_personagem; IF v_id_sala_atual IS NULL THEN RETURN 'Erro: Personagem não encontrado ou sem localização definida.'; END IF; SELECT S.nome, S.descricao INTO v_nome_sala_atual, v_descricao_sala FROM SBD1.Sala S WHERE S.id = v_id_sala_atual; SELECT string_agg(C.nome_saida, ', ') INTO v_saidas_disponiveis FROM SBD1.Conexao C WHERE C.id_sala_origem = v_id_sala_atual; IF v_saidas_disponiveis IS NULL THEN v_saidas_disponiveis := 'Nenhuma'; END IF; RETURN 'Você está em: ' || v_nome_sala_atual || E'\n' || v_descricao_sala || E'\n\n' || 'Saídas disponíveis: ' || v_saidas_disponiveis; END; $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION SBD1.mover_personagem(p_id_personagem INT, p_direcao_movimento VARCHAR(100)) RETURNS TEXT AS $$ DECLARE v_id_sala_destino INT; v_id_sala_origem INT; BEGIN SELECT P.id_sala_atual INTO v_id_sala_origem FROM SBD1.Personagem P WHERE P.id = p_id_personagem; SELECT C.id_sala_destino INTO v_id_sala_destino FROM SBD1.Conexao C WHERE C.id_sala_origem = v_id_sala_origem AND lower(C.nome_saida) = lower(p_direcao_movimento); IF v_id_sala_destino IS NOT NULL THEN UPDATE SBD1.Personagem SET id_sala_atual = v_id_sala_destino WHERE id = p_id_personagem; RETURN SBD1.descrever_local_atual(p_id_personagem); ELSE RETURN 'Você não pode ir por aí.'; END IF; END; $$ LANGUAGE plpgsql;
+
+-- Função Otimizada para o Python
+-- Retorna os detalhes do local de forma estruturada: nome, descrição e um ARRAY com as saídas.
+CREATE OR REPLACE FUNCTION SBD1.descrever_local_detalhado(
+    p_id_personagem INT
+) RETURNS TABLE(nome_sala TEXT, descricao TEXT, saidas TEXT[]) AS $$
+DECLARE
+    v_id_sala_atual INT;
+BEGIN
+    -- Encontra a localização atual do personagem
+    SELECT P.id_sala_atual INTO v_id_sala_atual
+    FROM SBD1.Personagem P
+    WHERE P.id = p_id_personagem;
+
+    -- Usa um 'RETURN QUERY' para retornar os resultados da consulta diretamente
+    RETURN QUERY
+        SELECT
+            S.nome::TEXT,
+            S.descricao,
+            -- Usa array_agg para agrupar as saídas em uma lista de texto (array)
+            array_agg(C.nome_saida)::TEXT[]
+        FROM
+            SBD1.Sala S
+        LEFT JOIN
+            SBD1.Conexao C ON S.id = C.id_sala_origem
+        WHERE
+            S.id = v_id_sala_atual
+        GROUP BY
+            S.nome, S.descricao;
+END;
+$$ LANGUAGE plpgsql;
