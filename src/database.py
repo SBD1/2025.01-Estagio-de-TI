@@ -18,8 +18,6 @@ def get_connection():
 def call_db_function(function_name, *args):
     result = None
     conn = get_connection()
-    if not conn:
-        return "[ERRO] Não foi possível conectar ao banco de dados."
     try:
         with conn.cursor() as cur:
             cur.execute(f"SELECT {function_name}({', '.join(['%s'] * len(args))});", args)
@@ -53,9 +51,6 @@ def get_location_details(personagem_id):
     """
     details = None
     conn = get_connection()
-    if not conn:
-        return None
-
     try:
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM descrever_local_detalhado(%s);", (personagem_id,))
