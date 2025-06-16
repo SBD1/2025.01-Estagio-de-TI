@@ -1,59 +1,35 @@
-CREATE TABLE IF NOT EXISTS Item (
+-- Tabela base
+CREATE TABLE Item (
     id_item SERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
-    tipo VARCHAR(30) NOT NULL CHECK (tipo IN ('Hardware', 'Consumivel', 'Chave', 'Arma', 'Grimorio', 'Historia', 'PowerUp')),
-    descricao VARCHAR(200) NOT NULL,
-    conhecimento_extra VARCHAR(100)
+    descricao TEXT,
+    tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('PowerUp', 'Consumivel', 'Equipamento')),
+    preco_base INT NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS Chave (
-    id_item INT PRIMARY KEY REFERENCES Item(id_item),
-    descricao_uso VARCHAR(100) NOT NULL
+-- Tabelas especializadas (1 pra 1 com Item)
+CREATE TABLE PowerUp (
+    id_item INT PRIMARY KEY REFERENCES Item(id_item) ON DELETE CASCADE,
+    bonus_ataque INT,
+    duracao INT
 );
 
-CREATE TABLE IF NOT EXISTS Consumivel (
-    id_item INT PRIMARY KEY,
-    FOREIGN KEY (id_item) REFERENCES Item(id_item),
-
-    efeito VARCHAR(100) NOT NULL,
-    quantidade INT NOT NULL CHECK (quantidade BETWEEN 1 AND 100)
+CREATE TABLE Consumivel (
+    id_item INT PRIMARY KEY REFERENCES Item(id_item) ON DELETE CASCADE,
+    recuperacao_vida INT
 );
 
-CREATE TABLE IF NOT EXISTS PowerUp (
-    id_item INT PRIMARY KEY,
-    FOREIGN KEY (id_item) REFERENCES Item(id_item),
-
-    buff VARCHAR(100) NOT NULL,
-    duracao INT NOT NULL -- em turnos ou minutos
-);
-
-CREATE TABLE IF NOT EXISTS Grimorio (
-    id_item INT PRIMARY KEY,
-    FOREIGN KEY (id_item) REFERENCES Item(id_item),
-
-    xp_necessario INT NOT NULL CHECK (xp_necessario BETWEEN 1 AND 10000),
-    habilidade VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS Historia (
-    id_item INT PRIMARY KEY,
-    FOREIGN KEY (id_item) REFERENCES Item(id_item),
-
-    texto VARCHAR(500) NOT NULL
+CREATE TABLE Equipamento (
+    id_item INT PRIMARY KEY REFERENCES Item(id_item) ON DELETE CASCADE,
+    slot VARCHAR(50),
+    bonus_permanente INT
 );
 
 
+-- Tabela para instâncias de itens (drops, itens em inventário, etc)
 CREATE TABLE IF NOT EXISTS InstanciaItem (
-    id_instancia_item SERIAL PRIMARY KEY,
-
-    id_item INT NOT NULL,
-    FOREIGN KEY (id_item) REFERENCES Item(id_item),
-
-    id_sala INT,
-    FOREIGN KEY (id_sala) REFERENCES Sala(id_sala),
-
-    id_estagiario INT,
-    FOREIGN KEY (id_estagiario) REFERENCES Estagiario(id_personagem),
-
-    quantidade INT NOT NULL DEFAULT 1
+    id_instancia SERIAL PRIMARY KEY,
+    id_item INT REFERENCES Item(id_item),
+    quantidade INT DEFAULT 1,
+    local_atual VARCHAR(20) CHECK (local_atual IN ('Inventario', 'Chao', 'Loja'))
 );
