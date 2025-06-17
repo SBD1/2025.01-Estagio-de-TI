@@ -1,252 +1,333 @@
 # DQL - Data Query Language
 
-A DQL (Data Query Language) é uma sublinguagem do SQL focada em realizar consultas e recuperar dados de um banco de dados. Seus comandos permitem aos usuários e aplicações extrair informações específicas de tabelas, realizar junções e agregar dados para análise e relatórios.
+# Introdução
 
-### Consultas ao Banco de Dados
+A Linguagem de Consulta de Dados (DQL) é um subconjunto do SQL usado para realizar consultas em bancos de dados. No contexto do nosso jogo, as consultas DQL são essenciais para recuperar informações sobre o estado do jogo, como a localização do jogador, seu inventário, missões disponíveis e status dos NPCs.
 
-A seguir, estão listadas diversas consultas para interagir com o banco de dados do jogo.
+## Migrações do Banco de Dados
 
------
-
-#### **1. Estrutura Física**
-
-##### **1.1. Listar todos os mundos**
-
+### V24__CriarPersonagem_funcao.sql
 ```sql
-SELECT * FROM Mundo;
+CREATE OR REPLACE FUNCTION criar_personagem(
+    p_nome_personagem VARCHAR(100)
+) RETURNS TEXT AS $$
+DECLARE
+    v_sala_inicial RECORD;
+    v_id_estagiario INT;
+BEGIN
+
+    SELECT id_sala, id_andar INTO v_sala_inicial
+    FROM vw_sala_central --uma view
+    WHERE numero_andar = 0;
+
+    INSERT INTO Estagiario(
+        nome, 
+        xp, 
+        nivel, 
+        respeito,
+        coins,
+        status,
+        andar_atual,
+        sala_atual
+    ) VALUES (
+        p_nome_personagem,
+        0,      
+        1,    
+        50,    
+        100,   
+        'Normal',
+        v_sala_inicial.id_andar,
+        v_sala_inicial.id_sala
+    ) RETURNING id_personagem INTO v_id_estagiario;
+
+    RETURN 'Estagiário "' || p_nome_personagem || '" criado com sucesso! (ID: ' || v_id_estagiario || ')';
+
+EXCEPTION
+    WHEN unique_violation THEN
+        RETURN 'Erro: Já existe um estagiário com este nome.';
+    WHEN OTHERS THEN
+        RETURN 'Erro inesperado ao criar estagiário: ' || SQLERRM;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION criar_inventario_estagiario()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO Inventario (id_estagiario, espaco_total)
+    VALUES (NEW.id_personagem, 12);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_criar_inventario
+AFTER INSERT ON Estagiario
+FOR EACH ROW
+EXECUTE FUNCTION criar_inventario_estagiario();
+
 ```
 
-##### **1.2. Listar todos os andares de um mundo específico**
-
+### V25__LocalDetalhado_funcao.sql
 ```sql
--- O valor '1' pode ser substituído pelo ID do mundo desejado.
-SELECT * FROM Andar WHERE id_mundo = 1 ORDER BY numero;
+CREATE OR REPLACE FUNCTION descrever_local_detalhado(
+    p_id_personagem INT
+) RETURNS TABLE(nome_local TEXT, descricao TEXT, saidas TEXT[]) AS $$
+DECLARE
+    v_posicao RECORD;
+BEGIN
+    
+    SELECT * INTO v_posicao
+    FROM vw_posicao_estagiario --uma view
+    WHERE id_personagem = p_id_personagem;
+
+    RETURN QUERY
+    WITH saidas_possiveis AS (
+        
+        SELECT 'Ir para ' || nome_sala_destino as direcao
+        FROM vw_conexoes_salas
+        WHERE id_sala_origem = v_posicao.sala_atual
+
+        UNION ALL
+
+     
+        SELECT 
+            CASE 
+                WHEN a.numero > v_posicao.numero_andar THEN 'Subir para ' || REGEXP_REPLACE(a.nome, '.*?: ', '')
+                WHEN a.numero < v_posicao.numero_andar THEN 'Descer para ' || REGEXP_REPLACE(a.nome, '.*?: ', '')
+            END
+        FROM Andar a
+        WHERE v_posicao.nome_sala = 'Sala Central'
+        AND ((a.numero = v_posicao.numero_andar + 1 AND v_posicao.numero_andar < 10)
+          OR (a.numero = v_posicao.numero_andar - 1 AND v_posicao.numero_andar > -2))
+    )
+    SELECT 
+        (v_posicao.nome_andar || E'\nSala: ' || v_posicao.nome_sala),
+        v_posicao.descricao_sala,
+        ARRAY(
+            SELECT direcao 
+            FROM saidas_possiveis 
+            WHERE direcao IS NOT NULL
+            ORDER BY direcao
+        ); -- esse text é para transformar em um vetor as saidas
+END;
+$$ LANGUAGE plpgsql;
 ```
 
-##### **1.3. Listar todas as salas de um andar**
-
+### V26__MoverPersonagem_funcao.sql
 ```sql
--- O valor '1' pode ser substituído pelo ID do andar desejado.
-SELECT * FROM Sala WHERE id_andar = 1;
+CREATE OR REPLACE FUNCTION mover_personagem(
+    p_id_personagem INT,
+    p_direcao_texto VARCHAR(100)
+) RETURNS TEXT AS $$
+DECLARE
+    v_posicao RECORD;
+    v_novo_andar INT;
+    v_nova_sala INT;
+BEGIN
+
+    SELECT * INTO v_posicao
+    FROM vw_posicao_estagiario --uma view
+    WHERE id_personagem = p_id_personagem;
+
+    IF (p_direcao_texto LIKE 'Subir para%' OR p_direcao_texto LIKE 'Descer para%') THEN
+
+        IF v_posicao.nome_sala != 'Sala Central' THEN
+            RETURN 'Você só pode mudar de andar a partir da Sala Central.';
+        END IF;
+
+
+        SELECT sc.id_andar, sc.id_sala 
+        INTO v_novo_andar, v_nova_sala
+        FROM vw_sala_central sc
+        JOIN Andar a ON sc.id_andar = a.id_andar
+        WHERE p_direcao_texto LIKE '%' || REGEXP_REPLACE(a.nome, '.*?: ', '');
+
+        IF v_novo_andar IS NOT NULL THEN
+            UPDATE Estagiario 
+            SET andar_atual = v_novo_andar,
+                sala_atual = v_nova_sala
+            WHERE id_personagem = p_id_personagem;
+            
+            RETURN 'Você mudou de andar.';
+        END IF;
+
+    ELSIF p_direcao_texto LIKE 'Ir para%' THEN
+
+        SELECT id_sala_destino INTO v_nova_sala
+        FROM vw_conexoes_salas
+        WHERE id_sala_origem = v_posicao.sala_atual
+        AND 'Ir para ' || nome_sala_destino = p_direcao_texto;
+
+        IF v_nova_sala IS NOT NULL THEN
+            UPDATE Estagiario 
+            SET sala_atual = v_nova_sala
+            WHERE id_personagem = p_id_personagem;
+            
+            RETURN 'Você se moveu para outra sala.';
+        END IF;
+    END IF;
+
+    RETURN 'Movimento inválido.';
+END;
+$$ LANGUAGE plpgsql;
 ```
 
-##### **1.4. Listar todas as cafeterias**
-
+### V31__VerificarItem_trigger.sql
 ```sql
-SELECT * FROM Cafeteria;
+CREATE OR REPLACE FUNCTION verificar_item_tipo_unico() RETURNS TRIGGER AS $$
+DECLARE
+    tipo_item TEXT;
+    count_tipos INT := 0;
+BEGIN
+    SELECT tipo INTO tipo_item FROM Item WHERE id_item = NEW.id_item;
+
+    IF tipo_item = 'PowerUp' THEN
+        SELECT COUNT(*) INTO count_tipos FROM Consumivel WHERE id_item = NEW.id_item;
+        IF count_tipos > 0 THEN
+            RAISE EXCEPTION 'Item do tipo PowerUp não pode estar também como Consumivel.';
+        END IF;
+
+        SELECT COUNT(*) INTO count_tipos FROM Equipamento WHERE id_item = NEW.id_item;
+        IF count_tipos > 0 THEN
+            RAISE EXCEPTION 'Item do tipo PowerUp não pode estar também como Equipamento.';
+        END IF;
+    ELSIF tipo_item = 'Consumivel' THEN
+        SELECT COUNT(*) INTO count_tipos FROM PowerUp WHERE id_item = NEW.id_item;
+        IF count_tipos > 0 THEN
+            RAISE EXCEPTION 'Item do tipo Consumivel não pode estar também como PowerUp.';
+        END IF;
+
+        SELECT COUNT(*) INTO count_tipos FROM Equipamento WHERE id_item = NEW.id_item;
+        IF count_tipos > 0 THEN
+            RAISE EXCEPTION 'Item do tipo Consumivel não pode estar também como Equipamento.';
+        END IF;
+    ELSIF tipo_item = 'Equipamento' THEN
+        SELECT COUNT(*) INTO count_tipos FROM PowerUp WHERE id_item = NEW.id_item;
+        IF count_tipos > 0 THEN
+            RAISE EXCEPTION 'Item do tipo Equipamento não pode estar também como PowerUp.';
+        END IF;
+
+        SELECT COUNT(*) INTO count_tipos FROM Consumivel WHERE id_item = NEW.id_item;
+        IF count_tipos > 0 THEN
+            RAISE EXCEPTION 'Item do tipo Equipamento não pode estar também como Consumivel.';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- PowerUp
+CREATE TRIGGER validar_tipo_powerup
+BEFORE INSERT OR UPDATE ON PowerUp
+FOR EACH ROW
+EXECUTE FUNCTION verificar_item_tipo_unico();
+
+-- Consumivel
+CREATE TRIGGER validar_tipo_consumivel
+BEFORE INSERT OR UPDATE ON Consumivel
+FOR EACH ROW
+EXECUTE FUNCTION verificar_item_tipo_unico();
+
+-- Equipamento
+CREATE TRIGGER validar_tipo_equipamento
+BEFORE INSERT OR UPDATE ON Equipamento
+FOR EACH ROW
+EXECUTE FUNCTION verificar_item_tipo_unico();
+
 ```
 
------
-
-#### **2. Personagens**
-
-##### **2.1. Listar todos os personagens**
-
+## Outras buscas importantes
 ```sql
-SELECT * FROM Personagem;
+-- 1.localização do jogador
+SELECT 
+    estagiario.id_personagem,
+    estagiario.andar_atual,
+    estagiario.sala_atual,
+    andar.numero,
+    andar.nome,
+    sala.nome,
+    sala.descricao
+FROM Estagiario estagiario
+JOIN Andar andar ON estagiario.andar_atual = andar.id_andar
+JOIN Sala sala ON estagiario.sala_atual = sala.id_sala;
 ```
 
-##### **2.2. Listar todos os estagiários**
-
 ```sql
-SELECT * FROM Estagiario
-JOIN Personagem ON Estagiario.id_personagem = Personagem.id_personagem;
+-- 2.inventário do jogador
+SELECT 
+    item.nome,
+    item.tipo,
+    item.descricao,
+    iteminventario.quantidade
+FROM ItemInventario iteminventario
+JOIN InstanciaItem instanciaitem ON iteminventario.id_instancia = instanciaitem.id_instancia
+JOIN Item item ON instanciaitem.id_item = item.id_item
+WHERE iteminventario.id_inventario = 1;
 ```
 
-##### **2.3. Listar todos os NPCs e suas funções**
-
 ```sql
-SELECT NPC.*, Personagem.nome, Personagem.descricao
-FROM NPC
-JOIN Personagem ON NPC.id_personagem = Personagem.id_personagem;
+-- 3.NPCs suas missões
+SELECT 
+    npc.id_personagem,
+    personagem.nome,
+    npc.tipo,
+    npc.andar_atual,
+    npc.dialogo_padrao,
+    missao.id_missao,
+    missao.nome,
+    missao.descricao,
+    missao.tipo,
+    missao.xp_recompensa,
+    missao.moedas_recompensa
+FROM NPC npc
+JOIN Personagem personagem ON npc.id_personagem = personagem.id_personagem
+LEFT JOIN Missao missao ON missao.npc_origem = npc.id_personagem;
 ```
 
-##### **2.4. Listar todos os chefes finais**
-
 ```sql
-SELECT ChefeFinal.*, Personagem.nome
-FROM ChefeFinal
-JOIN Personagem ON ChefeFinal.id_personagem = Personagem.id_personagem;
+-- 4.status das missões do jogador
+SELECT 
+    missao.id_missao,
+    missao.nome,
+    missao.descricao,
+    missao.tipo,
+    missao.xp_recompensa,
+    missao.moedas_recompensa,
+    missaostatus.status
+FROM Missao missao
+JOIN MissaoStatus missaostatus ON missao.id_missao = missaostatus.id_missao
+WHERE missaostatus.id_estagiario = 1;
 ```
 
------
-
-#### **3. Itens e Inventário**
-
-##### **3.1. Listar todos os itens**
-
 ```sql
-SELECT * FROM Item;
+-- 5.itens da cafeteria
+SELECT 
+    item.id_item,
+    item.nome,
+    item.descricao,
+    item.tipo,
+    item.preco_base,
+    instanciaitem.quantidade
+FROM InstanciaItem instanciaitem
+JOIN Item item ON instanciaitem.id_item = item.id_item
+WHERE instanciaitem.local_atual = 'Loja'
+ORDER BY item.tipo, item.preco_base;
 ```
 
-##### **3.2. Listar todos os itens em uma sala específica**
-
 ```sql
--- O valor '4' pode ser substituído pelo ID da sala desejada.
-SELECT InstanciaItem.*, Item.nome
-FROM InstanciaItem
-JOIN Item ON InstanciaItem.id_item = Item.id_item
-WHERE id_sala = 4;
+-- 6. Status do Estagiário
+SELECT 
+    estagiario.id_personagem,
+    estagiario.nome,
+    estagiario.nivel,
+    estagiario.xp,
+    estagiario.coins,
+    estagiario.status,
+    estagiario.respeito
+FROM Estagiario estagiario;
 ```
 
-##### **3.3. Listar todos os itens no inventário de um estagiário**
-
 ```sql
--- O valor '1' pode ser substituído pelo ID do estagiário desejado.
-SELECT InstanciaItem.*, Item.nome
-FROM InstanciaItem
-JOIN Item ON InstanciaItem.id_item = Item.id_item
-WHERE id_estagiario = 1;
+SELECT * FROM Inimigo; --busca inimigos
 ```
-
-##### **3.4. Listar inventários existentes**
-
-```sql
-SELECT * FROM Inventario;
-```
-
------
-
-#### **4. Missões e Progresso**
-
-##### **4.1. Listar todas as missões**
-
-```sql
-SELECT * FROM Missao;
-```
-
-##### **4.2. Listar missões de um andar específico**
-
-```sql
--- O valor '1' pode ser substituído pelo número do andar.
-SELECT Missao.* FROM Missao WHERE andar = 1;
-```
-
-##### **4.3. Listar missões concluídas por um estagiário**
-
-```sql
--- O valor '1' pode ser substituído pelo ID do estagiário.
-SELECT MissaoConcluida.*, Missao.nome
-FROM MissaoConcluida
-JOIN Missao ON MissaoConcluida.id_missao = Missao.id_missao
-WHERE id_estagiario = 1;
-```
-
------
-
-#### **5. Demandas (Sidequests)**
-
-##### **5.1. Listar todas as demandas**
-
-```sql
-SELECT * FROM Demanda;
-```
-
-##### **5.2. Listar demandas concluídas por estagiário**
-
-```sql
--- O valor '1' pode ser substituído pelo ID do estagiário.
-SELECT DemandaConcluida.*, Demanda.nome
-FROM DemandaConcluida
-JOIN Demanda ON DemandaConcluida.id_demanda = Demanda.id_demanda
-WHERE id_estagiario = 1;
-```
-
-##### **5.3. Demandas abertas (não concluídas) para um estagiário**
-
-```sql
--- O valor '1' pode ser substituído pelo ID do estagiário.
-SELECT D.*
-FROM Demanda D
-LEFT JOIN DemandaConcluida DC ON D.id_demanda = DC.id_demanda AND DC.id_estagiario = 1
-WHERE DC.id_demanda IS NULL;
-```
-
------
-
-#### **6. Interações e Eventos**
-
-##### **6.1. Listar todos os diálogos de um personagem**
-
-```sql
--- O valor '2' pode ser substituído pelo ID do personagem.
-SELECT * FROM Dialogo WHERE id_personagem = 2;
-```
-
-##### **6.2. Listar todas as transações realizadas por um estagiário**
-
-```sql
--- O valor '1' pode ser substituído pelo ID do estagiário.
-SELECT * FROM Transacao WHERE id_estagiario = 1;
-```
-
-##### **6.3. Listar todos os combates de um estagiário**
-
-```sql
--- O valor '1' pode ser substituído pelo ID do estagiário.
-SELECT * FROM Combate WHERE id_estagiario = 1;
-```
-
------
-
-#### **7. Consultas Avançadas e Relatórios**
-
-##### **7.1. Quantidade de missões e demandas concluídas por estagiário**
-
-```sql
-SELECT
-    P.nome,
-    COUNT(DISTINCT MC.id_missao) AS missoes_concluidas,
-    COUNT(DISTINCT DC.id_demanda) AS demandas_concluidas
-FROM Personagem P
-LEFT JOIN Estagiario E ON P.id_personagem = E.id_personagem
-LEFT JOIN MissaoConcluida MC ON MC.id_estagiario = E.id_personagem
-LEFT JOIN DemandaConcluida DC ON DC.id_estagiario = E.id_personagem
-WHERE E.id_personagem IS NOT NULL
-GROUP BY P.nome;
-```
-
-##### **7.2. Ranking de estagiários por XP**
-
-```sql
-SELECT P.nome, E.xp, E.nivel
-FROM Estagiario E
-JOIN Personagem P ON E.id_personagem = P.id_personagem
-ORDER BY E.xp DESC, E.nivel DESC;
-```
-
-##### **7.3. Itens mais presentes nos inventários**
-
-```sql
-SELECT Item.nome, SUM(InstanciaItem.quantidade) AS total
-FROM InstanciaItem
-JOIN Item ON InstanciaItem.id_item = Item.id_item
-GROUP BY Item.nome
-ORDER BY total DESC;
-```
-
-##### **7.4. Missões e demandas pendentes de um estagiário**
-
-```sql
--- O valor '1' pode ser substituído pelo ID do estagiário.
-SELECT 'Missao' AS tipo, M.nome, M.descricao
-FROM Missao M
-LEFT JOIN MissaoConcluida MC ON M.id_missao = MC.id_missao AND MC.id_estagiario = 1
-WHERE MC.id_missao IS NULL
-UNION ALL
-SELECT 'Demanda' AS tipo, D.nome, D.descricao
-FROM Demanda D
-LEFT JOIN DemandaConcluida DC ON D.id_demanda = DC.id_demanda AND DC.id_estagiario = 1
-WHERE DC.id_demanda IS NULL;
-```
-
-\<br\>
-\<center\>
-
-## Histórico de Versão
-
-| Versão | Data | Descrição | Autor(es) |
-| :-: | :-: | :-: | :-: |
-| `1.0`  | 17/06/2025 | Versão inicial do DQL com consultas para a estrutura do jogo de estágio. | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr) |
-
-\</center\>

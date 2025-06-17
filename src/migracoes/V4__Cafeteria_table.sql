@@ -4,3 +4,4 @@ CREATE TABLE IF NOT EXISTS Cafeteria (
     aberto BOOLEAN NOT NULL DEFAULT TRUE,
     descricao TEXT
 );
+

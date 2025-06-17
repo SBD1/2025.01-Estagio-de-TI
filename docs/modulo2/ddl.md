@@ -1,130 +1,210 @@
 # DDL - Data Definition Language
 
+
+## Introdução
+
 A Linguagem de Definição de Dados (DDL) e as funções de banco de dados são um conjunto de comandos e lógicas usados em Sistemas de Gerenciamento de Banco de Dados (SGBD) para criar, alterar e gerenciar a estrutura e o comportamento de um banco de dados. Este documento define o esquema para um jogo de aventura textual.
 
+## Migrações do Banco de Dados
+
+### V1__Mundo_table.sql
 ```sql
--- Cria o Schema para organizar todos os objetos do nosso jogo
-CREATE SCHEMA IF NOT EXISTS SBD1;
-
--- Criação das Tabelas com o prefixo do Schema
-CREATE TABLE SBD1.Andar (
-    id SERIAL PRIMARY KEY,
-    numero INT NOT NULL,
-    descricao VARCHAR(255)
+CREATE TABLE IF NOT EXISTS Mundo (
+    id_mundo SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT
 );
+```
 
-CREATE TABLE SBD1.Sala (
-    id SERIAL PRIMARY KEY,
+### V2__Andar_table.sql
+```sql
+CREATE TABLE IF NOT EXISTS Andar (
+    id_andar SERIAL PRIMARY KEY,
+    id_mundo INT NOT NULL, 
+    numero SMALLINT NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    FOREIGN KEY (id_mundo) REFERENCES Mundo(id_mundo)
+);
+```
+
+### V3__Sala_table.sql
+```sql
+CREATE TABLE IF NOT EXISTS Sala (
+    id_sala SERIAL PRIMARY KEY,
     id_andar INT NOT NULL,
     nome VARCHAR(100) NOT NULL,
     descricao TEXT,
-    FOREIGN KEY (id_andar) REFERENCES SBD1.Andar(id)
+    FOREIGN KEY (id_andar) REFERENCES Andar(id_andar)
 );
-
-CREATE TABLE SBD1.Personagem (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    id_sala_atual INT,
-    CONSTRAINT UQ_Personagem_Nome UNIQUE(nome), -- Constraint para evitar nomes duplicados
-    FOREIGN KEY (id_sala_atual) REFERENCES SBD1.Sala(id)
-);
-
-CREATE TABLE SBD1.Conexao (
-    id SERIAL PRIMARY KEY,
-    id_sala_origem INT NOT NULL,
-    id_sala_destino INT NOT NULL,
-    nome_saida VARCHAR(100) NOT NULL,
-    FOREIGN KEY (id_sala_origem) REFERENCES SBD1.Sala(id),
-    FOREIGN KEY (id_sala_destino) REFERENCES SBD1.Sala(id)
-);
-
-
--- Criação das Funções do Jogo dentro do Schema SBD1
-
-CREATE OR REPLACE FUNCTION SBD1.criar_personagem(
-    p_nome_personagem VARCHAR(100)
-) RETURNS TEXT AS $$
-DECLARE
-    v_mensagem TEXT;
-BEGIN
-    INSERT INTO SBD1.Personagem(nome, id_sala_atual)
-    VALUES (p_nome_personagem, 1) -- ID 1 = Ponto de partida inicial
-    RETURNING 'Personagem "' || p_nome_personagem || '" criado com sucesso!' INTO v_mensagem;
-    RETURN v_mensagem;
-EXCEPTION
-    WHEN unique_violation THEN
-        RETURN 'Erro: Já existe um personagem com este nome.';
-    WHEN OTHERS THEN
-        RETURN 'Erro inesperado ao criar personagem.';
-END;
-$$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION SBD1.descrever_local_atual(
-    p_id_personagem INT
-) RETURNS TEXT AS $$
-DECLARE
-    v_descricao_sala TEXT;
-    v_nome_sala_atual VARCHAR(100);
-    v_saidas_disponiveis TEXT;
-    v_id_sala_atual INT;
-BEGIN
-    -- Busca a sala atual do personagem
-    SELECT P.id_sala_atual INTO v_id_sala_atual FROM SBD1.Personagem P WHERE P.id = p_id_personagem;
-
-    IF v_id_sala_atual IS NULL THEN
-        RETURN 'Erro: Personagem não encontrado ou sem localização definida.';
-    END IF;
-
-    -- Busca os detalhes da sala
-    SELECT S.nome, S.descricao INTO v_nome_sala_atual, v_descricao_sala FROM SBD1.Sala S WHERE S.id = v_id_sala_atual;
-
-    -- Agrega todas as saídas disponíveis para a sala atual
-    SELECT string_agg(C.nome_saida, ', ') INTO v_saidas_disponiveis FROM SBD1.Conexao C WHERE C.id_sala_origem = v_id_sala_atual;
-
-    IF v_saidas_disponiveis IS NULL THEN
-        v_saidas_disponiveis := 'Nenhuma';
-    END IF;
-
-    -- Formata a mensagem de retorno
-    RETURN 'Você está em: ' || v_nome_sala_atual || E'\n' || v_descricao_sala || E'\n\n' || 'Saídas disponíveis: ' || v_saidas_disponiveis;
-END;
-$$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION SBD1.mover_personagem(
-    p_id_personagem INT,
-    p_direcao_movimento VARCHAR(100)
-) RETURNS TEXT AS $$
-DECLARE
-    v_id_sala_destino INT;
-    v_id_sala_origem INT;
-BEGIN
-    -- Busca a sala de origem do personagem
-    SELECT P.id_sala_atual INTO v_id_sala_origem FROM SBD1.Personagem P WHERE P.id = p_id_personagem;
-
-    -- Encontra a sala de destino com base na origem e na direção (ignorando maiúsculas/minúsculas)
-    SELECT C.id_sala_destino INTO v_id_sala_destino FROM SBD1.Conexao C WHERE C.id_sala_origem = v_id_sala_origem AND lower(C.nome_saida) = lower(p_direcao_movimento);
-
-    -- Se um destino válido foi encontrado, atualiza a posição do personagem
-    IF v_id_sala_destino IS NOT NULL THEN
-        UPDATE SBD1.Personagem SET id_sala_atual = v_id_sala_destino WHERE id = p_id_personagem;
-        -- Retorna a descrição do novo local
-        RETURN SBD1.descrever_local_atual(p_id_personagem);
-    ELSE
-        RETURN 'Você não pode ir por aí.';
-    END IF;
-END;
-$$ LANGUAGE plpgsql;
-
 ```
 
-\<center\>
+### V4__Cafeteria_table.sql
+```sql
+CREATE TABLE IF NOT EXISTS Cafeteria (
+    id_cafeteria SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL DEFAULT 'Café do Estágio',
+    aberto BOOLEAN NOT NULL DEFAULT TRUE,
+    descricao TEXT
+);
+```
+
+### V5__Personagem_table.sql
+```sql
+CREATE TABLE IF NOT EXISTS Personagem (
+    id_personagem SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('PC', 'NPC')),
+    descricao VARCHAR(200)
+);
+```
+
+### V6__NPC_table.sql
+```sql
+CREATE TABLE IF NOT EXISTS NPC (
+    id_personagem INT PRIMARY KEY,
+    tipo VARCHAR(10) NOT NULL,
+    andar_atual INT,
+    dialogo_padrao VARCHAR(300) NOT NULL,
+    FOREIGN KEY (id_personagem) REFERENCES Personagem(id_personagem),
+    FOREIGN KEY (andar_atual) REFERENCES Andar(id_andar)
+);
+```
+
+### V7__Estagiario_table.sql
+```sql
+CREATE TABLE IF NOT EXISTS Estagiario (
+    id_personagem SERIAL PRIMARY KEY,
+    nome VARCHAR(100),
+    xp INT NOT NULL CHECK (xp BETWEEN 0 AND 10000),
+    nivel INT NOT NULL CHECK (nivel >= 1 AND nivel <= 100),
+    respeito INT DEFAULT 0 CHECK (respeito >= 0 AND respeito <= 100),
+    coins INT NOT NULL DEFAULT 0,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('Normal', 'Confuso', 'Estressado', 'Motivado')),
+    andar_atual INT,
+    sala_atual INT,
+    FOREIGN KEY (andar_atual) REFERENCES Andar(id_andar),
+    FOREIGN KEY (sala_atual) REFERENCES Sala(id_sala),
+    CONSTRAINT UQ_Estagiario_Nome UNIQUE(nome)
+);
+```
+
+### V9__Item_table.sql
+```sql
+CREATE TABLE IF NOT EXISTS Item (
+    id_item SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('PowerUp', 'Consumivel', 'Equipamento')),
+    preco_base INT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS PowerUp (
+    id_item INT PRIMARY KEY REFERENCES Item(id_item) ON DELETE CASCADE,
+    bonus_ataque INT,
+    duracao INT
+);
+
+CREATE TABLE IF NOT EXISTS Consumivel (
+    id_item INT PRIMARY KEY REFERENCES Item(id_item) ON DELETE CASCADE,
+    recuperacao_vida INT
+);
+
+CREATE TABLE IF NOT EXISTS Equipamento (
+    id_item INT PRIMARY KEY REFERENCES Item(id_item) ON DELETE CASCADE,
+    slot VARCHAR(50),
+    bonus_permanente INT
+);
+
+CREATE TABLE IF NOT EXISTS InstanciaItem (
+    id_instancia SERIAL PRIMARY KEY,
+    id_item INT REFERENCES Item(id_item),
+    quantidade INT DEFAULT 1,
+    local_atual VARCHAR(20) CHECK (local_atual IN ('Inventario', 'Chao', 'Loja'))
+);
+```
+
+### V10__Inventario_table.sql
+```sql
+CREATE TABLE IF NOT EXISTS Inventario (
+    id_inventario SERIAL PRIMARY KEY,
+    id_estagiario INT NOT NULL UNIQUE,
+    espaco_total INT NOT NULL DEFAULT 12,
+    espaco_usado INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (id_estagiario) REFERENCES Estagiario(id_personagem)
+);
+
+CREATE TABLE IF NOT EXISTS ItemInventario (
+    id_inventario INT,
+    id_instancia INT,
+    quantidade INT NOT NULL DEFAULT 1,
+    PRIMARY KEY (id_inventario, id_instancia),
+    FOREIGN KEY (id_inventario) REFERENCES Inventario(id_inventario),
+    FOREIGN KEY (id_instancia) REFERENCES InstanciaItem(id_instancia)
+);
+```
+
+### V11__Inimigo_table.sql
+```sql
+CREATE TABLE IF NOT EXISTS Inimigo (
+    id_inimigo SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    ataque VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS InstanciaInimigo (
+    id_instancia SERIAL PRIMARY KEY,
+    id_inimigo INT NOT NULL,
+    vida INT NOT NULL,
+    dano INT NOT NULL,
+    FOREIGN KEY (id_inimigo) REFERENCES Inimigo(id_inimigo)
+);
+```
+
+### V15__Combate_table.sql
+```sql
+CREATE TABLE IF NOT EXISTS Combate (
+    id_combate SERIAL PRIMARY KEY,
+
+    id_estagiario INT NOT NULL,
+    FOREIGN KEY (id_estagiario) REFERENCES Estagiario(id_personagem),
+
+    id_npc INT NOT NULL,
+    FOREIGN KEY (id_npc) REFERENCES NPC(id_personagem),
+
+    resultado VARCHAR(20) NOT NULL CHECK (resultado IN ('venceu', 'derrotado', 'fugiu')),
+    data TIMESTAMP DEFAULT NOW()
+);
+```
+
+### V28__Missao_table.sql
+```sql
+CREATE TABLE IF NOT EXISTS Missao (
+    id_missao SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT NOT NULL,
+    dialogo_inicial TEXT NOT NULL,
+    tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('Combate', 'Entrega', 'Conversa', 'Manutenção')),
+    xp_recompensa INT NOT NULL,
+    moedas_recompensa INT NOT NULL,
+    npc_origem INT NOT NULL,
+    FOREIGN KEY (npc_origem) REFERENCES NPC(id_personagem)
+);
+
+CREATE TABLE IF NOT EXISTS MissaoStatus (
+    id_missao INT,
+    id_estagiario INT,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('Disponível', 'Em Andamento', 'Concluída')),
+    PRIMARY KEY (id_missao, id_estagiario),
+    FOREIGN KEY (id_missao) REFERENCES Missao(id_missao),
+    FOREIGN KEY (id_estagiario) REFERENCES Estagiario(id_personagem)
+);
+```
+
+
+
 
 ## Histórico de Versão
 
-| Versão | Data | Descrição | Autor(es) |
-| :-: | :-: | :-: | :-: |
-| `1.0`  | 17/06/2025 | Versão inicial do DDL e funções para jogo de aventura textual | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr) |
-
-\</center\>
+| Versão | Data | Descrição | Autor(es) | Revisor |
+|:--:|:--:|:--:|:--:|:--:|
+| `1.0` | 16/06/2025 | Criação do documento DDL com versionamento | [Lucas Mendonça Arruda](https://github.com/lucasarruda9) e [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)| [Gabriel Basto Bertolazi](https://github.com/Bertolazi)|
