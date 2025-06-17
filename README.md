@@ -211,7 +211,12 @@ Instale Software necessários
 
 ## 📎 Apresentações
 
-As apresentações ficarão disponíveis [Neste Link](https://youtube.com/playlist?list=PL8iuGQf0VOAF4RWFvcqIQ0YvnS6gOvJd1&si=eJSDfYLw5dOZ8F7T), onde está localizada a playlist para os vídeos ao longo do semestre.
+* [Apresentação módulo 1](https://youtu.be/txNLLvrHGxQ)
+
+* [Apresentação módulo 2](https://youtu.be/Z8E0RvsN1to)
+
+* [Apresentação módulo 3]()
+
 
 </div>
 
