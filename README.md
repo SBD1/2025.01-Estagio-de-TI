@@ -189,6 +189,8 @@ pip install -r requirements.txt
 
 ```
 
+OBS: Caso o jogo não rode dentro do ambiente virtual, dê um "deactivate" no terminal, tente instalar as dependências fora do ambiente e rodar o jogo normalmente.
+
 Após a instalação das dependências, será necessário instalar o docker Compose V1 e depois instalar o plugin Docker compose V2.
 
 Com Tudo preparado basta apenas rodar os seguintes comandos no terminal
