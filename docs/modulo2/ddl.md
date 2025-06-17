@@ -207,4 +207,4 @@ CREATE TABLE IF NOT EXISTS MissaoStatus (
 
 | Versão | Data | Descrição | Autor(es) | Revisor |
 |:--:|:--:|:--:|:--:|:--:|
-| 1.0 | 16/06/2025 | Criação do documento DDL com versionamento | [Lucas Mendonça Arruda](https://github.com/lucasarruda9) e [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)| [Gabriel Basto Bertolazi](https://github.com/Bertolazi)|
+| `1.0` | 16/06/2025 | Criação do documento DDL com versionamento | [Lucas Mendonça Arruda](https://github.com/lucasarruda9) e [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)| [Gabriel Basto Bertolazi](https://github.com/Bertolazi)|
