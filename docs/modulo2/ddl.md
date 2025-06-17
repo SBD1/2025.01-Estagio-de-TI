@@ -1,8 +1,9 @@
 # DDL - Data Definition Language
 
+
 ## Introdução
 
-A DDL (Data Definition Language) é a linguagem utilizada para definir e modificar a estrutura dos objetos em um banco de dados. No jogo Estágio de TI, ela é essencial para criar as tabelas que armazenam os dados do jogo, estabelecer os relacionamentos entre as entidades, definir restrições de integridade, configurar chaves e índices, e também para criar funções e procedimentos armazenados. Essas definições formam a estrutura base do banco de dados do jogo, permitindo funcionalidades fundamentais como a navegação pelo mundo do jogo,
+A Linguagem de Definição de Dados (DDL) e as funções de banco de dados são um conjunto de comandos e lógicas usados em Sistemas de Gerenciamento de Banco de Dados (SGBD) para criar, alterar e gerenciar a estrutura e o comportamento de um banco de dados. Este documento define o esquema para um jogo de aventura textual.
 
 ## Migrações do Banco de Dados
 
@@ -206,4 +207,4 @@ CREATE TABLE IF NOT EXISTS MissaoStatus (
 
 | Versão | Data | Descrição | Autor(es) | Revisor |
 |:--:|:--:|:--:|:--:|:--:|
-| 1.0 | 16/06/2025 | Criação do documento DDL com versionamento | [Lucas Mendonça Arruda](https://github.com/lucasarruda9) | [Gabriel Basto Bertolazi](https://github.com/Bertolazi)|
+| 1.0 | 16/06/2025 | Criação do documento DDL com versionamento | [Lucas Mendonça Arruda](https://github.com/lucasarruda9) e [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr)| [Gabriel Basto Bertolazi](https://github.com/Bertolazi)|
