@@ -82,9 +82,9 @@ class DatabaseController:
             id_personagem = cursor.fetchone()[0]
 
             # Insere na tabela Estagiario com valores iniciais
-            # Sala 3 = Recepção, Andar 0 = Térreo
+            # Sala 7 = Sala Central do Térreo, Andar 13 = Térreo (número 0)
             cursor.execute(
-                "INSERT INTO Estagiario (id_personagem, xp, nivel, coins, status, andar_atual, id_sala_atual) VALUES (%s, 0, 1, 10, 'Normal', 0, 3)",
+                "INSERT INTO Estagiario (id_personagem, xp, nivel, coins, status, andar_atual, sala_atual) VALUES (%s, 0, 1, 10, 'Normal', 13, 7)",
                 (id_personagem,)
             )
             
@@ -113,7 +113,7 @@ class DatabaseController:
             SELECT p.nome, e.nivel, e.xp, e.coins, e.status, s.nome as sala_nome, a.nome as andar_nome
             FROM Estagiario e
             JOIN Personagem p ON e.id_personagem = p.id_personagem
-            JOIN Sala s ON e.id_sala_atual = s.id_sala
+            JOIN Sala s ON e.sala_atual = s.id_sala
             JOIN Andar a ON s.id_andar = a.id_andar
             WHERE e.id_personagem = %s;
         """
@@ -128,7 +128,7 @@ class DatabaseController:
         query = """
             SELECT s.id_sala, s.nome, s.descricao
             FROM Sala s
-            JOIN Estagiario e ON s.id_sala = e.id_sala_atual
+            JOIN Estagiario e ON s.id_sala = e.sala_atual
             WHERE e.id_personagem = %s;
         """
         cursor.execute(query, (player_id,))
@@ -140,7 +140,7 @@ class DatabaseController:
         """Busca as conexões disponíveis a partir de uma sala."""
         cursor = self.conn.cursor()
         query = """
-            SELECT cs.id_sala_destino, s.nome, cs.direcao, cs.descricao
+            SELECT cs.id_sala_destino, s.nome, 'Para', s.descricao
             FROM ConexaoSala cs
             JOIN Sala s ON cs.id_sala_destino = s.id_sala
             WHERE cs.id_sala_origem = %s;
@@ -161,7 +161,7 @@ class DatabaseController:
             # Atualiza a sala e o andar do estagiário
             query = """
                 UPDATE Estagiario
-                SET id_sala_atual = %s, andar_atual = %s
+                SET sala_atual = %s, andar_atual = %s
                 WHERE id_personagem = %s;
             """
             cursor.execute(query, (sala_destino_id, id_andar_destino, player_id))
@@ -179,10 +179,10 @@ class DatabaseController:
         # NPCs são associados a andares, mas podem aparecer em salas específicas para eventos.
         # Esta consulta busca NPCs no mesmo andar da sala.
         query = """
-            SELECT p.id_personagem, p.nome, n.funcao
+            SELECT p.id_personagem, p.nome, n.tipo
             FROM NPC n
             JOIN Personagem p ON n.id_personagem = p.id_personagem
-            WHERE n.andar = (SELECT id_andar FROM Sala WHERE id_sala = %s);
+            WHERE n.andar_atual = (SELECT id_andar FROM Sala WHERE id_sala = %s);
         """
         cursor.execute(query, (sala_id,))
         npcs = cursor.fetchall()
@@ -192,7 +192,7 @@ class DatabaseController:
     def get_dialogue_for_npc(self, npc_id):
         """Busca uma linha de diálogo para um NPC."""
         cursor = self.conn.cursor()
-        cursor.execute("SELECT texto FROM Dialogo WHERE id_personagem = %s ORDER BY RANDOM() LIMIT 1", (npc_id,))
+        cursor.execute("SELECT dialogo_padrao FROM NPC WHERE id_personagem = %s", (npc_id,))
         dialogue = cursor.fetchone()
         cursor.close()
         return dialogue[0] if dialogue else None
@@ -203,9 +203,11 @@ class DatabaseController:
         query = """
             SELECT 'Missao' AS tipo, m.nome, m.descricao, m.xp_recompensa
             FROM Missao m
-            WHERE m.andar <= (SELECT andar_atual FROM Estagiario WHERE id_personagem = %s)
-            AND m.id_missao NOT IN (SELECT id_missao FROM MissaoConcluida WHERE id_estagiario = %s)
-            ORDER BY m.andar, m.id_missao;
+            LEFT JOIN MissaoStatus ms ON m.id_missao = ms.id_missao AND ms.id_estagiario = %s
+            LEFT JOIN MissaoConcluida mc ON m.id_missao = mc.id_missao AND mc.id_estagiario = %s
+            WHERE (ms.status IS NULL OR ms.status = 'Disponível') 
+            AND mc.id_missao IS NULL
+            ORDER BY m.id_missao;
         """
         cursor.execute(query, (player_id, player_id))
         missions = cursor.fetchall()
@@ -220,11 +222,91 @@ class DatabaseController:
             FROM Demanda d
             JOIN NPC n ON d.id_npc = n.id_personagem
             JOIN Personagem p ON n.id_personagem = p.id_personagem
-            WHERE d.andar <= (SELECT andar_atual FROM Estagiario WHERE id_personagem = %s)
-            AND d.id_demanda NOT IN (SELECT id_demanda FROM DemandaConcluida WHERE id_estagiario = %s)
-            ORDER BY d.andar, d.id_demanda;
+            LEFT JOIN DemandaConcluida dc ON d.id_demanda = dc.id_demanda AND dc.id_estagiario = %s
+            WHERE dc.id_demanda IS NULL
+            ORDER BY d.id_demanda;
         """
-        cursor.execute(query, (player_id, player_id))
+        cursor.execute(query, (player_id,))
         demands = cursor.fetchall()
         cursor.close()
         return demands
+    
+    def complete_mission(self, player_id, mission_id):
+        """Marca uma missão como concluída e dá as recompensas."""
+        try:
+            cursor = self.conn.cursor()
+            
+            # Busca os dados da missão
+            cursor.execute("SELECT xp_recompensa, moedas_recompensa FROM Missao WHERE id_missao = %s", (mission_id,))
+            mission_data = cursor.fetchone()
+            
+            if not mission_data:
+                return False, "Missão não encontrada"
+            
+            xp_reward, coins_reward = mission_data
+            
+            # Adiciona à tabela MissaoConcluida
+            cursor.execute("""
+                INSERT INTO MissaoConcluida (id_missao, id_estagiario, xp_ganho, moedas_ganhas)
+                VALUES (%s, %s, %s, %s)
+            """, (mission_id, player_id, xp_reward, coins_reward))
+            
+            # Atualiza status da missão para 'Concluída'
+            cursor.execute("""
+                INSERT INTO MissaoStatus (id_missao, id_estagiario, status)
+                VALUES (%s, %s, 'Concluída')
+                ON CONFLICT (id_missao, id_estagiario) 
+                DO UPDATE SET status = 'Concluída'
+            """, (mission_id, player_id))
+            
+            # Atualiza XP e moedas do jogador
+            cursor.execute("""
+                UPDATE Estagiario 
+                SET xp = xp + %s, coins = coins + %s
+                WHERE id_personagem = %s
+            """, (xp_reward, coins_reward, player_id))
+            
+            self.conn.commit()
+            cursor.close()
+            return True, f"Missão concluída! +{xp_reward} XP, +{coins_reward} moedas"
+            
+        except Exception as e:
+            self.conn.rollback()
+            cursor.close()
+            return False, f"Erro ao completar missão: {e}"
+    
+    def complete_demand(self, player_id, demand_id):
+        """Marca uma demanda como concluída e dá as recompensas."""
+        try:
+            cursor = self.conn.cursor()
+            
+            # Busca os dados da demanda
+            cursor.execute("SELECT xp_recompensa FROM Demanda WHERE id_demanda = %s", (demand_id,))
+            demand_data = cursor.fetchone()
+            
+            if not demand_data:
+                return False, "Demanda não encontrada"
+            
+            xp_reward = demand_data[0]
+            
+            # Adiciona à tabela DemandaConcluida
+            cursor.execute("""
+                INSERT INTO DemandaConcluida (id_demanda, id_estagiario)
+                VALUES (%s, %s)
+            """, (demand_id, player_id))
+            
+            # Atualiza XP do jogador
+            cursor.execute("""
+                UPDATE Estagiario 
+                SET xp = xp + %s
+                WHERE id_personagem = %s
+            """, (xp_reward, player_id))
+            
+            self.conn.commit()
+            cursor.close()
+            return True, f"Demanda concluída! +{xp_reward} XP"
+            
+        except Exception as e:
+            self.conn.rollback()
+            cursor.close()
+            return False, f"Erro ao completar demanda: {e}"

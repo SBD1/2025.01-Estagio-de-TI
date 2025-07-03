@@ -40,8 +40,8 @@ def explorar_sala(db_controller, player_id):
     npcs_na_sala = db_controller.get_npcs_in_room(id_sala)
     if npcs_na_sala:
         print("\nVocê vê algumas pessoas por aqui:")
-        for _, nome_npc, funcao_npc in npcs_na_sala:
-            print(f"- {nome_npc} ({funcao_npc})")
+        for _, nome_npc, tipo_npc in npcs_na_sala:
+            print(f"- {nome_npc} ({tipo_npc})")
     else:
         print("\nA sala parece vazia no momento.")
 
