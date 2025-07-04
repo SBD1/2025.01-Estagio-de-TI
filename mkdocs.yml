@@ -12,13 +12,10 @@ nav:
     - Modelo Entidade Relacionamento: "modulo1/mer.md"
     - Dicionário de Dados: "modulo1/dd.md"
     - Modelo Relacional: "modulo1/mr.md"
-  #- Entrega 2:
-  #  - Normalização: ""
-  #  - Data Definition Language: ""
-  #  - Data Manipulation Language: ""
-  #  - Data Query Language: ""
-  #  - Algebra Relacional: ""
-  #  - Terminal: ""
+  - Entrega 2:
+    - Data Definition Language: ""
+    - Data Manipulation Language: ""
+    - Data Query Language: ""
 
 theme:
   name: material
