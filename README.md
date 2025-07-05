@@ -37,6 +37,7 @@ Cada *andar do prédio* representa uma etapa da sua evolução dentro da empresa
 - *Cafeteria:* Compra de consumíveis como café, salgados e energéticos que dão buffs.
 
 
+
 ### Estrutura dos andares
 
 Neste RPG, você é um estagiário de TI em busca da tão sonhada efetivação. Cada andar de um prédio corporativo representa um novo desafio técnico e profissional. Supere todos os andares para alcançar o topo e conquistar seu cargo!

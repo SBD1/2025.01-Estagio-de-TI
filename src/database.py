@@ -145,8 +145,6 @@ def get_items_for_sale(item_type=None):
             conn.close()
     return itens
 
-
-
 def get_player_coins(personagem_id):
     """Retorna a quantidade atual de moedas do jogador."""
     coins = 0
