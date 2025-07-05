@@ -25,3 +25,5 @@ CREATE TABLE PC (
     id_sala INT NOT NULL,
     FOREIGN KEY(id_sala) REFERENCES Sala(id_sala)
 );
+
+ALTER TABLE PC ADD COLUMN ultimo_acesso TIMESTAMP;

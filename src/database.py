@@ -30,6 +30,22 @@ def call_db_function(function_name, *args):
         if conn: conn.close()
     return result
 
+def get_sala_id(personagem_id):
+    sala_id = None
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT sala_atual FROM Estagiario WHERE id_personagem = %s;", (personagem_id,))
+            row = cur.fetchone()
+            if row:
+                sala_id = row[0]
+    except Exception as e:
+        print(f"Erro ao buscar sala do personagem: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return sala_id
+    
 def get_all_characters():
     characters = []
     conn = get_connection()
@@ -61,3 +77,38 @@ def get_location_details(personagem_id):
         if conn:
             conn.close()
     return details
+
+def get_npcs_in_room(sala_id):
+    conn = get_connection()
+    result = []
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT n.id_personagem, p.nome, n.tipo
+                FROM NPC n
+                JOIN Personagem p ON n.id_personagem = p.id_personagem
+                WHERE p.id_sala = %s
+            """, (sala_id,))
+            result = cursor.fetchall()
+    except Exception as e:
+        print(f"Erro ao buscar NPCs: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return resulty
+
+def get_pcs_in_room(sala_id):
+    conn = get_connection()
+    result = []
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT id_pc FROM PC WHERE id_sala = %s
+            """, (sala_id,))
+            result = cursor.fetchall()
+    except Exception as e:
+        print(f"Erro ao buscar PCs: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return result
