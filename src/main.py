@@ -148,7 +148,6 @@ def game_loop(personagem_id, personagem_nome):
                 print(f"\nTentando: {direcao_escolhida}...")
                 call_db_function('mover_personagem', personagem_id, direcao_escolhida)
                 time.sleep(1) # Pequena pausa para o jogador ler
-            
             elif loja_disponivel and escolha_num == loja_idx:
                 abrir_loja(personagem_id, loja_tipo)
             else:
