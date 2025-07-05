@@ -89,9 +89,8 @@ def game_loop(personagem_id, personagem_nome):
         loja_tipo = None
         if sala_info:
             nome_atual = sala_info[1]
-            if nome_atual == 'Recepção':
-                if nome_atual == 'Cafeteria':
-                    loja_tipo = 'Consumivel'
+            if nome_atual == 'Cafeteria':
+                loja_tipo = 'Consumivel'
             elif nome_atual == 'Depósito':
                 loja_tipo = 'Equipamento'
 
@@ -111,7 +110,7 @@ def game_loop(personagem_id, personagem_nome):
         for i, saida in enumerate(saidas_disponiveis, start=1):
             saida_fmt = saida
             s_lower = saida.lower()
-            if s_lower.startswith("subir") or s_lower.startswith("descer") or "recep" in s_lower:
+            if s_lower.startswith("subir") or s_lower.startswith("descer") or "cafe" in s_lower:
                 saida_fmt = f"({saida})"
             print(f"  [{i}] {saida_fmt}")
 
@@ -166,7 +165,6 @@ def abrir_loja(personagem_id, item_type):
         coins = get_player_coins(personagem_id)
         nome_loja = 'Loja'
         if item_type == 'Consumivel':
-            nome_loja = 'Recepção'
             nome_loja = 'Cafeteria'
         elif item_type == 'Equipamento':
             nome_loja = 'Depósito'
