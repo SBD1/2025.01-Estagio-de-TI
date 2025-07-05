@@ -82,9 +82,19 @@ def game_loop(personagem_id, personagem_nome):
 
         nome_sala, descricao_sala, saidas_disponiveis = location_details
         sala_id = sala_info[0] if sala_info else None
-
+        
         npcs_na_sala = get_npcs_in_room(sala_id) if sala_id else []
-        loja_disponivel = any(tipo == 'almoxarife' for _, _, tipo in npcs_na_sala)
+        tem_vendedor = any(tipo in ('almoxarife', 'barista') for _, _, tipo in npcs_na_sala)
+
+        loja_tipo = None
+        if sala_info:
+            nome_atual = sala_info[1]
+            if nome_atual == 'Cafeteria':
+                loja_tipo = 'Consumivel'
+            elif nome_atual == 'Depósito':
+                loja_tipo = 'Equipamento'
+
+        loja_disponivel = tem_vendedor and loja_tipo is not None
 
         # 2. Exibe as informações do local
         print(f"--- {personagem_nome} ---")
@@ -98,7 +108,12 @@ def game_loop(personagem_id, personagem_nome):
         
         # 3. Exibe o menu de opções numerado
         for i, saida in enumerate(saidas_disponiveis, start=1):
-            print(f"  [{i}] {saida}")
+        l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
+            saida_fmt = saida
+            s_lower = saida.lower()
+            if s_lower.startswith("subir") or s_lower.startswith("descer") or "cafeteria" in s_lower:
+                saida_fmt = f"({saida})"
+            print(f"  [{i}] {saida_fmt}")
 
         next_idx = len(saidas_disponiveis) + 1
         if loja_disponivel:
@@ -135,23 +150,29 @@ def game_loop(personagem_id, personagem_nome):
                 time.sleep(1) # Pequena pausa para o jogador ler
             
             elif loja_disponivel and escolha_num == loja_idx:
-                abrir_loja(personagem_id)
+            l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
+                abrir_loja(personagem_id, loja_tipo)
             else:
                 print("\nOpção inválida. Tente novamente.")
                 time.sleep(2)
-
         except ValueError:
             print("\nPor favor, digite um número. Tente novamente.")
             time.sleep(2)
 
 
-def abrir_loja(personagem_id):
+l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
+def abrir_loja(personagem_id, item_type):
     """Interface simples de compra de itens."""
     while True:
         clear_screen()
-        itens = get_items_for_sale()
+        itens = get_items_for_sale(item_type)
         coins = get_player_coins(personagem_id)
-        print(f"=== Loja ===  (Coins: {coins} C$)\n")
+        nome_loja = 'Loja'
+        if item_type == 'Consumivel':
+            nome_loja = 'Cafeteria'
+        elif item_type == 'Equipamento':
+            nome_loja = 'Depósito'
+        print(f"=== {nome_loja} ===  (Coins: {coins} C$)\n")
         if not itens:
             print("A loja está vazia.")
             input("Pressione Enter para voltar.")

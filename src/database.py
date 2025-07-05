@@ -110,22 +110,36 @@ def get_npcs_in_room(sala_id):
             conn.close()
     return npcs
 
-
-def get_items_for_sale():
-    """Lista itens disponíveis na loja."""
+l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
+def get_items_for_sale(item_type=None):
+    """Lista itens disponíveis na loja, opcionalmente filtrando por tipo."""
     itens = []
     conn = get_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT ii.id_instancia, i.nome, i.descricao, i.preco_base, ii.quantidade
-                FROM InstanciaItem ii
-                JOIN Item i ON ii.id_item = i.id_item
-                WHERE ii.local_atual = 'Loja'
-                ORDER BY i.nome;
-                """
-            )
+       l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
+            if item_type:
+                cur.execute(
+                    """
+                    SELECT ii.id_instancia, i.nome, i.descricao, i.preco_base, ii.quantidade
+                    FROM InstanciaItem ii
+                    JOIN Item i ON ii.id_item = i.id_item
+                    WHERE ii.local_atual = 'Loja' AND i.tipo = %s
+                    ORDER BY i.nome;
+                    """,
+                    (item_type,),
+                )
+            else:
+                cur.execute(
+                    """
+                    SELECT ii.id_instancia, i.nome, i.descricao, i.preco_base, ii.quantidade
+                    FROM InstanciaItem ii
+                    JOIN Item i ON ii.id_item = i.id_item
+                    WHERE ii.local_atual = 'Loja'
+                    ORDER BY i.nome;
+                    """
+                )
+
             itens = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar itens da loja: {e}")
@@ -133,7 +147,6 @@ def get_items_for_sale():
         if conn:
             conn.close()
     return itens
-
 
 def get_player_coins(personagem_id):
     """Retorna a quantidade atual de moedas do jogador."""
