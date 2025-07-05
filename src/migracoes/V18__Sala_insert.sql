@@ -41,68 +41,78 @@ INSERT INTO Sala (id_andar, nome, descricao) VALUES
 
 
 INSERT INTO ConexaoSala (id_sala_origem, id_sala_destino) VALUES
--- Subsolo 2
+--subsolo 2
 (1, 2), 
 (2, 1), 
 (1, 3), 
 (3, 1),
--- Subsolo 1 
+--subsolo 1 
 (4, 5), 
 (5, 4),
 (4, 6), 
 (6, 4), 
--- Térreo 
+--térreo 
 (7, 8),
 (8, 7), 
 (7, 9), 
 (9, 7), 
--- Andar 1 
+--andar 1 
 (10, 11), 
 (11, 10), 
 (10, 12), 
 (12, 10), 
--- Andar 2 
+--andar 2 
 (13, 14), 
 (14, 13),
 (13, 15), 
 (15, 13), 
--- Andar 3 
+--andar 3 
 (16, 17), 
 (17, 16), 
 (16, 18), 
 (18, 16), 
--- Andar 4 
+--andar 4 
 (19, 20),
 (20, 19), 
 (19, 21), 
 (21, 19), 
--- Andar 5 
+--andar 5 
 (22, 23),
 (23, 22), 
 (22, 24), 
 (24, 22), 
--- Andar 6 
+--andar 6 
 (25, 26),
 (26, 25), 
 (25, 27), 
 (27, 25), 
--- Andar 7
+--andar 7
 (28, 29), 
 (29, 28), 
 (28, 30), 
 (30, 28), 
--- Andar 8
+--andar 8
 (31, 32), 
 (32, 31),
 (31, 33), 
 (33, 31), 
--- Andar 9
+--andar 9
 (34, 35), 
 (35, 34), 
 (34, 36), 
 (36, 34), 
--- Andar 10 
+--andar 10 
 (37, 38), 
 (38, 37), 
 (37, 39), 
 (39, 37); 
+
+INSERT INTO PC (id_pc, id_sala) VALUES
+(1, 3),
+(2, 1),
+(3, 11),
+(4, 12),
+(5, 35),
+(6, 32),
+(7, 17),
+(8, 38);

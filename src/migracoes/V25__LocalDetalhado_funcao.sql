@@ -37,6 +37,6 @@ BEGIN
             FROM saidas_possiveis 
             WHERE direcao IS NOT NULL
             ORDER BY direcao
-        ); -- esse text é para transformar em um vetor as saidas
+        ); 
 END;
 $$ LANGUAGE plpgsql;

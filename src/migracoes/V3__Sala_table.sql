@@ -20,3 +20,8 @@ CREATE TABLE IF NOT EXISTS ConexaoSala (
     CHECK (id_sala_origem != id_sala_destino)
 );
 
+CREATE TABLE PC (
+    id_pc INT PRIMARY KEY,
+    id_sala INT NOT NULL,
+    FOREIGN KEY(id_sala) REFERENCES Sala(id_sala)
+);
