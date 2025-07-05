@@ -239,7 +239,8 @@ DECLARE
     v_coins INT;
     v_new_instancia INT;
     v_tipo TEXT;
-    v_bonus INT;
+    v_bonus_atk INT;
+    v_bonus_def INT;
 BEGIN
     SELECT ii.id_item, ii.quantidade, i.preco_base
     INTO v_item_id, v_quant_disp, v_preco
@@ -276,16 +277,18 @@ BEGIN
     SELECT tipo INTO v_tipo FROM Item WHERE id_item = v_item_id;
 
     IF v_tipo = 'PowerUp' THEN
-        SELECT bonus_ataque INTO v_bonus FROM PowerUp WHERE id_item = v_item_id;
-        UPDATE Estagiario SET ataque = ataque + v_bonus * p_quantidade
+        SELECT bonus_ataque INTO v_bonus_atk FROM PowerUp WHERE id_item = v_item_id;
+        UPDATE Estagiario SET ataque = ataque + v_bonus_atk * p_quantidade
         WHERE id_personagem = p_id_estagiario;
     ELSIF v_tipo = 'Consumivel' THEN
-        SELECT recuperacao_vida INTO v_bonus FROM Consumivel WHERE id_item = v_item_id;
-        UPDATE Estagiario SET vida = LEAST(vida + v_bonus * p_quantidade, 100)
+        SELECT recuperacao_vida INTO v_bonus_atk FROM Consumivel WHERE id_item = v_item_id;
+        UPDATE Estagiario SET vida = LEAST(vida + v_bonus_atk * p_quantidade, 100)
         WHERE id_personagem = p_id_estagiario;
     ELSIF v_tipo = 'Equipamento' THEN
-        SELECT bonus_permanente INTO v_bonus FROM Equipamento WHERE id_item = v_item_id;
-        UPDATE Estagiario SET ataque = ataque + v_bonus * p_quantidade
+        SELECT bonus_ataque, bonus_defesa INTO v_bonus_atk, v_bonus_def FROM Equipamento WHERE id_item = v_item_id;
+        UPDATE Estagiario
+        SET ataque = ataque + v_bonus_atk * p_quantidade,
+            defesa = defesa + v_bonus_def * p_quantidade
         WHERE id_personagem = p_id_estagiario;
     END IF;
 

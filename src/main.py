@@ -104,6 +104,7 @@ def game_loop(personagem_id, personagem_nome):
         print(descricao_sala)
         print("\n--------------------")
         print("O que você faz?\n")
+        print("(Pressione 'p' para ver seu status)")
 
         # Garante que 'saidas_disponiveis' não seja None. Se for, é uma lista vazia.
         saidas_disponiveis = saidas_disponiveis or []
@@ -182,9 +183,17 @@ def abrir_loja(personagem_id, item_type):
             input("Pressione Enter para voltar.")
             return
 
-        for i, (inst_id, nome, desc, preco, qtd) in enumerate(itens, start=1):
+        for i, (inst_id, nome, desc, preco, qtd, bonus_atk, bonus_def, bonus_hp) in enumerate(itens, start=1):
             print(f"[{i}] {nome} - {preco} C$ (x{qtd})")
-            print(f"    {desc}")
+            atributos = []
+            if bonus_hp:
+                atributos.append(f"Vida +{bonus_hp}")
+            if bonus_atk:
+                atributos.append(f"Ataque +{bonus_atk}")
+            if bonus_def:
+                atributos.append(f"Defesa +{bonus_def}")
+            attr_text = f" [{', '.join(atributos)}]" if atributos else ""
+            print(f"    {desc}{attr_text}")
         print("[0] Voltar")
 
         escolha = input("Escolha um item: ").strip()

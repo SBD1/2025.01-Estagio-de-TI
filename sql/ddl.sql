@@ -117,7 +117,8 @@ CREATE TABLE Consumivel (
 CREATE TABLE Equipamento (
     id_item INT PRIMARY KEY REFERENCES Item(id_item) ON DELETE CASCADE,
     slot VARCHAR(50),
-    bonus_permanente INT
+    bonus_ataque INT DEFAULT 0,
+    bonus_defesa INT DEFAULT 0
 );
 
 
