@@ -1,7 +1,15 @@
 import os
 import time
-from database import call_db_function, get_all_characters
-from database import call_db_function, get_all_characters, get_location_details
+from database import (
+    call_db_function,
+    get_all_characters,
+    get_location_details,
+    get_player_room_info,
+    get_npcs_in_room,
+    get_items_for_sale,
+    get_player_coins,
+    buy_item,
+)
 
 def clear_screen():
     """Limpa a tela do terminal."""
@@ -62,16 +70,31 @@ def game_loop(personagem_id, personagem_nome):
 
     while True:
         clear_screen()
-        
+
         # 1. Pega os detalhes estruturados do local atual
         location_details = get_location_details(personagem_id)
+        sala_info = get_player_room_info(personagem_id)
 
         if not location_details:
             print("Erro ao carregar o local. Voltando ao menu.")
             time.sleep(3)
             break
-        
+
         nome_sala, descricao_sala, saidas_disponiveis = location_details
+        sala_id = sala_info[0] if sala_info else None
+
+        npcs_na_sala = get_npcs_in_room(sala_id) if sala_id else []
+        tem_vendedor = any(tipo in ('almoxarife', 'barista') for _, _, tipo in npcs_na_sala)
+
+        loja_tipo = None
+        if sala_info:
+            nome_atual = sala_info[1]
+            if nome_atual == 'Recepção':
+                loja_tipo = 'Consumivel'
+            elif nome_atual == 'Depósito':
+                loja_tipo = 'Equipamento'
+
+        loja_disponivel = tem_vendedor and loja_tipo is not None
 
         # 2. Exibe as informações do local
         print(f"--- {personagem_nome} ---")
@@ -85,10 +108,18 @@ def game_loop(personagem_id, personagem_nome):
         
         # 3. Exibe o menu de opções numerado
         for i, saida in enumerate(saidas_disponiveis, start=1):
-            print(f"  [{i}] {saida}")
-        
-        # Adiciona a opção de sair
-        print(f"  [{len(saidas_disponiveis) + 1}] Voltar ao menu principal")
+            saida_fmt = saida
+            s_lower = saida.lower()
+            if s_lower.startswith("subir") or s_lower.startswith("descer") or "recep" in s_lower:
+                saida_fmt = f"({saida})"
+            print(f"  [{i}] {saida_fmt}")
+
+        next_idx = len(saidas_disponiveis) + 1
+        if loja_disponivel:
+            print(f"  [{next_idx}] Comprar Itens")
+            next_idx += 1
+
+        print(f"  [{next_idx}] Voltar ao menu principal")
         print("\n--------------------")
 
         # 4. Pega e processa a escolha do jogador
@@ -98,12 +129,15 @@ def game_loop(personagem_id, personagem_nome):
 
             escolha_num = int(escolha_str)
             
+            loja_idx = len(saidas_disponiveis) + 1 if loja_disponivel else None
+            sair_idx = (len(saidas_disponiveis) + 2 if loja_disponivel else len(saidas_disponiveis) + 1)
+
             # Opção de sair do jogo
-            if escolha_num == len(saidas_disponiveis) + 1:
+            if escolha_num == sair_idx:
                 print("\nVoltando ao menu principal...")
                 time.sleep(2)
                 break
-            
+
             # Opção de movimento válida
             elif 1 <= escolha_num <= len(saidas_disponiveis):
                 # Pega o nome da saída escolhida da lista
@@ -114,12 +148,61 @@ def game_loop(personagem_id, personagem_nome):
                 call_db_function('mover_personagem', personagem_id, direcao_escolhida)
                 time.sleep(1) # Pequena pausa para o jogador ler
             
+            elif loja_disponivel and escolha_num == loja_idx:
+                abrir_loja(personagem_id, loja_tipo)
             else:
                 print("\nOpção inválida. Tente novamente.")
                 time.sleep(2)
 
         except ValueError:
             print("\nPor favor, digite um número. Tente novamente.")
+            time.sleep(2)
+
+
+def abrir_loja(personagem_id, item_type):
+    """Interface simples de compra de itens."""
+    while True:
+        clear_screen()
+        itens = get_items_for_sale(item_type)
+        coins = get_player_coins(personagem_id)
+        nome_loja = 'Loja'
+        if item_type == 'Consumivel':
+            nome_loja = 'Recepção'
+        elif item_type == 'Equipamento':
+            nome_loja = 'Depósito'
+        print(f"=== {nome_loja} ===  (Coins: {coins} C$)\n")
+        if not itens:
+            print("A loja está vazia.")
+            input("Pressione Enter para voltar.")
+            return
+
+        for i, (inst_id, nome, desc, preco, qtd) in enumerate(itens, start=1):
+            print(f"[{i}] {nome} - {preco} C$ (x{qtd})")
+            print(f"    {desc}")
+        print("[0] Voltar")
+
+        escolha = input("Escolha um item: ").strip()
+        if escolha == "0":
+            return
+        try:
+            idx = int(escolha)
+            if 1 <= idx <= len(itens):
+                inst_id = itens[idx - 1][0]
+                max_q = itens[idx - 1][4]
+                q = input(f"Quantidade (1-{max_q}): ").strip()
+                q = int(q) if q else 1
+                if q < 1 or q > max_q:
+                    print("Quantidade inválida.")
+                    time.sleep(2)
+                    continue
+                msg = buy_item(personagem_id, inst_id, q)
+                print(msg)
+                time.sleep(2)
+            else:
+                print("Opção inválida.")
+                time.sleep(2)
+        except ValueError:
+            print("Digite números válidos.")
             time.sleep(2)
 
 
