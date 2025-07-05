@@ -90,6 +90,7 @@ def game_loop(personagem_id, personagem_nome):
         if sala_info:
             nome_atual = sala_info[1]
             if nome_atual == 'Recepção':
+            if nome_atual == 'Cafeteria':
                 loja_tipo = 'Consumivel'
             elif nome_atual == 'Depósito':
                 loja_tipo = 'Equipamento'
@@ -153,7 +154,6 @@ def game_loop(personagem_id, personagem_nome):
             else:
                 print("\nOpção inválida. Tente novamente.")
                 time.sleep(2)
-
         except ValueError:
             print("\nPor favor, digite um número. Tente novamente.")
             time.sleep(2)
@@ -168,6 +168,7 @@ def abrir_loja(personagem_id, item_type):
         nome_loja = 'Loja'
         if item_type == 'Consumivel':
             nome_loja = 'Recepção'
+            nome_loja = 'Cafeteria'
         elif item_type == 'Equipamento':
             nome_loja = 'Depósito'
         print(f"=== {nome_loja} ===  (Coins: {coins} C$)\n")
