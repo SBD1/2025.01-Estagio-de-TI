@@ -82,13 +82,14 @@ def game_loop(personagem_id, personagem_nome):
 
         nome_sala, descricao_sala, saidas_disponiveis = location_details
         sala_id = sala_info[0] if sala_info else None
-        
+
         npcs_na_sala = get_npcs_in_room(sala_id) if sala_id else []
         tem_vendedor = any(tipo in ('almoxarife', 'barista') for _, _, tipo in npcs_na_sala)
 
         loja_tipo = None
         if sala_info:
             nome_atual = sala_info[1]
+            if nome_atual == 'Recepção':
             if nome_atual == 'Cafeteria':
                 loja_tipo = 'Consumivel'
             elif nome_atual == 'Depósito':
@@ -108,10 +109,9 @@ def game_loop(personagem_id, personagem_nome):
         
         # 3. Exibe o menu de opções numerado
         for i, saida in enumerate(saidas_disponiveis, start=1):
-        l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
             saida_fmt = saida
             s_lower = saida.lower()
-            if s_lower.startswith("subir") or s_lower.startswith("descer") or "cafeteria" in s_lower:
+            if s_lower.startswith("subir") or s_lower.startswith("descer") or "recep" in s_lower:
                 saida_fmt = f"({saida})"
             print(f"  [{i}] {saida_fmt}")
 
@@ -150,7 +150,6 @@ def game_loop(personagem_id, personagem_nome):
                 time.sleep(1) # Pequena pausa para o jogador ler
             
             elif loja_disponivel and escolha_num == loja_idx:
-            l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
                 abrir_loja(personagem_id, loja_tipo)
             else:
                 print("\nOpção inválida. Tente novamente.")
@@ -160,7 +159,6 @@ def game_loop(personagem_id, personagem_nome):
             time.sleep(2)
 
 
-l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
 def abrir_loja(personagem_id, item_type):
     """Interface simples de compra de itens."""
     while True:
@@ -169,6 +167,7 @@ def abrir_loja(personagem_id, item_type):
         coins = get_player_coins(personagem_id)
         nome_loja = 'Loja'
         if item_type == 'Consumivel':
+            nome_loja = 'Recepção'
             nome_loja = 'Cafeteria'
         elif item_type == 'Equipamento':
             nome_loja = 'Depósito'
