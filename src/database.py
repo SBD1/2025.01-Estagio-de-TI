@@ -111,32 +111,33 @@ def get_npcs_in_room(sala_id):
     return npcs
 
 def get_items_for_sale(item_type=None):
-    """Lista itens disponíveis na loja, opcionalmente filtrando por tipo."""
+    """Lista itens disponíveis na loja, opcionalmente filtrando por tipo.
+
+    Agora também retorna os bônus que o item concede (ataque, defesa ou vida).
+    """
     itens = []
     conn = get_connection()
     try:
         with conn.cursor() as cur:
+            base_query = """
+                SELECT ii.id_instancia, i.nome, i.descricao, i.preco_base, ii.quantidade,
+                       COALESCE(e.bonus_ataque, 0) AS bonus_ataque,
+                       COALESCE(e.bonus_defesa, 0) AS bonus_defesa,
+                       COALESCE(c.recuperacao_vida, 0) AS recuperacao_vida
+                FROM InstanciaItem ii
+                JOIN Item i ON ii.id_item = i.id_item
+                LEFT JOIN Equipamento e ON i.id_item = e.id_item
+                LEFT JOIN Consumivel c ON i.id_item = c.id_item
+                WHERE ii.local_atual = 'Loja'
+            """
+            params = []
             if item_type:
-                cur.execute(
-                    """
-                    SELECT ii.id_instancia, i.nome, i.descricao, i.preco_base, ii.quantidade
-                    FROM InstanciaItem ii
-                    JOIN Item i ON ii.id_item = i.id_item
-                    WHERE ii.local_atual = 'Loja' AND i.tipo = %s
-                    ORDER BY i.nome;
-                    """,
-                    (item_type,),
-                )
-            else:
-                cur.execute(
-                    """
-                    SELECT ii.id_instancia, i.nome, i.descricao, i.preco_base, ii.quantidade
-                    FROM InstanciaItem ii
-                    JOIN Item i ON ii.id_item = i.id_item
-                    WHERE ii.local_atual = 'Loja'
-                    ORDER BY i.nome;
-                    """
-                )
+                base_query += " AND i.tipo = %s"
+                params.append(item_type)
+
+            base_query += " ORDER BY i.nome;"
+
+            cur.execute(base_query, params)
             itens = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar itens da loja: {e}")

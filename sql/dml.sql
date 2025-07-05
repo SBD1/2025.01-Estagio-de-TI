@@ -174,10 +174,10 @@ INSERT INTO Item (nome, descricao, tipo, preco_base) VALUES
 ('Teclado Mecânico', 'Aumenta velocidade de digitação', 'Equipamento', 300),
 ('Cadeira Ergonômica', 'Reduz dano recebido', 'Equipamento', 500);
 
-INSERT INTO Equipamento (id_item, slot, bonus_permanente) VALUES
-(8, 'Maos', 15),     
-(9, 'Maos', 20),    
-(10, 'Corpo', 30); 
+INSERT INTO Equipamento (id_item, slot, bonus_ataque, bonus_defesa) VALUES
+    (8, 'Maos', 15, 0),
+    (9, 'Maos', 20, 0),
+    (10, 'Corpo', 0, 30);
 
 INSERT INTO InstanciaItem (id_item, quantidade, local_atual) VALUES
 (5, 10, 'Loja'),
