@@ -110,7 +110,6 @@ def get_npcs_in_room(sala_id):
             conn.close()
     return npcs
 
-
 def get_items_for_sale(item_type=None):
     """Lista itens disponíveis na loja, opcionalmente filtrando por tipo."""
     itens = []
@@ -145,6 +144,7 @@ def get_items_for_sale(item_type=None):
         if conn:
             conn.close()
     return itens
+
 
 
 def get_player_coins(personagem_id):
