@@ -8,6 +8,7 @@ from database import (
     get_npcs_in_room,
     get_items_for_sale,
     get_player_coins,
+    get_player_stats,
     buy_item,
 )
 
@@ -66,6 +67,7 @@ def game_loop(personagem_id, personagem_nome):
     """O loop principal do jogo, com menu de opções numérico."""
     clear_screen()
     print(f"Iniciando o jogo com {personagem_nome}...")
+    print("(Pressione 'p' a qualquer momento para ver seu status)" )
     time.sleep(2)
 
     while True:
@@ -119,13 +121,18 @@ def game_loop(personagem_id, personagem_nome):
             print(f"  [{next_idx}] Comprar Itens")
             next_idx += 1
 
+        print("  [P] Ver status do personagem")
         print(f"  [{next_idx}] Voltar ao menu principal")
         print("\n--------------------")
 
         # 4. Pega e processa a escolha do jogador
         try:
             escolha_str = input("Sua escolha: ").strip()
-            if not escolha_str: continue # Se o usuário só apertar Enter, repete o loop
+            if not escolha_str:
+                continue
+            if escolha_str.lower() == 'p':
+                mostrar_status(personagem_id)
+                continue
 
             escolha_num = int(escolha_str)
             
@@ -203,6 +210,29 @@ def abrir_loja(personagem_id, item_type):
         except ValueError:
             print("Digite números válidos.")
             time.sleep(2)
+
+
+def mostrar_status(personagem_id):
+    """Exibe os atributos atuais do personagem."""
+    clear_screen()
+    stats = get_player_stats(personagem_id)
+    if not stats:
+        print("Não foi possível obter os dados do personagem.")
+        input("Pressione Enter para continuar...")
+        return
+    nome, nivel, xp, respeito, coins, ataque, defesa, vida, status = stats
+    print("=== STATUS DO PERSONAGEM ===\n")
+    print(f"Nome: {nome}")
+    print(f"Nível: {nivel}")
+    print(f"XP: {xp}")
+    print(f"Respeito: {respeito}")
+    print(f"Coins: {coins} C$")
+    print(f"Ataque: {ataque}")
+    print(f"Defesa: {defesa}")
+    print(f"Vida: {vida}")
+    print(f"Status: {status}")
+    print("\n===========================")
+    input("Pressione Enter para continuar...")
 
 
 def main_menu():

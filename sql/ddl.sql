@@ -74,6 +74,9 @@ CREATE TABLE IF NOT EXISTS Estagiario (
     nivel INT NOT NULL CHECK (nivel >= 1 AND nivel <= 100),
     respeito INT DEFAULT 0 CHECK (respeito >= 0 AND respeito <= 100),
     coins INT NOT NULL DEFAULT 0,
+    ataque INT NOT NULL DEFAULT 10,
+    defesa INT NOT NULL DEFAULT 5,
+    vida INT NOT NULL DEFAULT 100,
     status VARCHAR(20) NOT NULL CHECK (status IN ('Normal', 'Confuso', 'Estressado', 'Motivado')),
 
     andar_atual INT,

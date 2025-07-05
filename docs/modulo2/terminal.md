@@ -75,6 +75,7 @@ Digite o ID do personagem: 1
   - A cada turno, a tela é limpa e o cenário atual é exibido, incluindo o nome e a descrição do local.
   - As saídas (caminhos) disponíveis são listadas em um menu numerado, facilitando a movimentação.
   - O jogador se move escolhendo o número correspondente à direção desejada.
+  - A qualquer momento, é possível pressionar `p` para ver os atributos atuais do personagem.
   - **Função**: `game_loop(personagem_id, personagem_nome)`
 
 **Exemplo de Saída:**
@@ -109,6 +110,7 @@ Sua escolha: 1
       - O coração do jogo. Busca os detalhes da localização atual do personagem no banco de dados.
       - Exibe a descrição do local e as saídas disponíveis como um menu de múltipla escolha.
       - Processa a entrada do jogador para movimentação ou para sair para o menu principal.
+      - Permite comprar itens que aumentam atributos e visualizar o status com `p`.
   - **`clear_screen()`**:
       - Função utilitária para limpar a tela do terminal, compatível com Windows (`cls`) e Unix (`clear`).
   - **Módulo `database`**:
@@ -142,7 +144,7 @@ Sua escolha: 1
 
 ## 🔧 Possíveis Melhorias Futuras
 
-  - **Sistema de Status**: Exibir atributos do personagem (HP, MP, Nível) no `game_loop`.
+  - **Sistema de Status**: já implementado; pressione `p` durante o jogo para visualizar atributos como ataque e vida.
   - **Combate**: Implementar um sistema de encontros com inimigos nas salas.
   - **Inventário e Itens**: Adicionar a capacidade de coletar, gerenciar e usar itens.
   - **Interações**: Permitir que o jogador interaja com NPCs, baús e outros elementos do cenário.
