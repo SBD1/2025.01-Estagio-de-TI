@@ -34,9 +34,7 @@ Cada *andar do prédio* representa uma etapa da sua evolução dentro da empresa
 - *Subsolo 1 (Almoxarifado):* Itens de suporte (peças, cabos, drivers, ferramentas).
 - *Térreo (Recepção):* Base para missões iniciais, conversar com NPCs e receber instruções.
 - *Andares 1 a 10:* Cada andar é uma "área" ou "setor" da empresa com desafios diferentes.
-- *Cafeteria:* Compra de consumíveis como café, salgados e energéticos que dão buffs.
-
-
+- *Cafeteria (acessível pela recepção):* Compra de consumíveis como café, salgados e energéticos que dão buffs.
 
 ### Estrutura dos andares
 

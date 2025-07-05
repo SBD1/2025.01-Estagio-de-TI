@@ -75,15 +75,16 @@ INSERT INTO ConexaoSala (id_sala_origem, id_sala_destino) VALUES
 (8, 7), 
 (7, 9),
 (9, 7),
-(7, 40),
-(40, 7),
+-- Ligação da recepção com a cafeteria
+(7, 10),
+(10, 7),
 -- Andar 1
-(10, 11), 
-(11, 10), 
-(10, 12), 
-(12, 10), 
--- Andar 2 
-(13, 14), 
+(11, 12),
+(12, 11),
+(11, 13),
+(13, 11),
+-- Andar 2
+(13, 14),
 (14, 13),
 (13, 15), 
 (15, 13), 

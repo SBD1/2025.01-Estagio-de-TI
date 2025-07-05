@@ -13,7 +13,7 @@ Cada *andar do prédio* representa uma etapa da sua evolução dentro da empresa
 O jogo "Estagiário: Da Impressora ao Dev Sênior" segue a jornada de um estagiário que precisa progredir em uma empresa, partindo doo andares mais baixos visando conseguir chegar à cobertura (RH e Diretoria).
 
 - **Exploração e Combate**: No almoxarifado, o estagiário encontra itens úteis, como itens de ataque (periféricos para o seu computador), e de defesa (vestimentas). No térreo (recepção), ele recebe as missões iniciais e interage com personagens que o orientam. Nos andares de 1 a 9, cada um com um tema diferente, o estagiário deve completar as missões disponíveis, ganhando XP (QI) e moedas (dinheiro).
-- **Power-ups e Armas Secundárias**: Na cafeteria, o estagiário pode comprar consumíveis como café e energéticos, que lhe conferem efeitos de aumento de stamina. Finalmente, na cobertura, o estagiário enfrenta o desafio final: uma entrevista de emprego e a realização de um projeto completo, utilizando as habilidades desbloqueadas ao longo do jogo. Ao concluir essa etapa, o estagiário se torna um desenvolvedor sênior.
+- **Power-ups e Armas Secundárias**: Na cafeteria (acessada pela recepção), o estagiário pode comprar consumíveis como café e energéticos, que lhe conferem efeitos de aumento de stamina. Finalmente, na cobertura, o estagiário enfrenta o desafio final: uma entrevista de emprego e a realização de um projeto completo, utilizando as habilidades desbloqueadas ao longo do jogo. Ao concluir essa etapa, o estagiário se torna um desenvolvedor sênior.
 
 
 ## Contribuidores
