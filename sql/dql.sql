@@ -218,3 +218,57 @@ FOR EACH ROW
 EXECUTE FUNCTION verificar_item_tipo_unico();
 
 
+--
+-- Procedimento para comprar item na loja
+CREATE OR REPLACE FUNCTION comprar_item(
+    p_id_estagiario INT,
+    p_id_instancia INT,
+    p_quantidade INT
+) RETURNS TEXT AS $$
+DECLARE
+    v_item_id INT;
+    v_quant_disp INT;
+    v_preco INT;
+    v_inventario INT;
+    v_coins INT;
+    v_new_instancia INT;
+BEGIN
+    SELECT ii.id_item, ii.quantidade, i.preco_base
+    INTO v_item_id, v_quant_disp, v_preco
+    FROM InstanciaItem ii
+    JOIN Item i ON ii.id_item = i.id_item
+    WHERE ii.id_instancia = p_id_instancia AND ii.local_atual = 'Loja';
+
+    IF NOT FOUND THEN
+        RETURN 'Item nao disponivel na loja.';
+    END IF;
+
+    IF v_quant_disp < p_quantidade THEN
+        RETURN 'Quantidade indisponivel.';
+    END IF;
+
+    SELECT coins INTO v_coins FROM Estagiario WHERE id_personagem = p_id_estagiario;
+    IF v_coins < v_preco * p_quantidade THEN
+        RETURN 'Moedas insuficientes.';
+    END IF;
+
+    SELECT id_inventario INTO v_inventario FROM Inventario WHERE id_estagiario = p_id_estagiario;
+
+    UPDATE Estagiario SET coins = coins - v_preco * p_quantidade
+    WHERE id_personagem = p_id_estagiario;
+
+    INSERT INTO InstanciaItem(id_item, quantidade, local_atual)
+    VALUES (v_item_id, p_quantidade, 'Inventario')
+    RETURNING id_instancia INTO v_new_instancia;
+
+    INSERT INTO ItemInventario(id_inventario, id_instancia, quantidade)
+    VALUES (v_inventario, v_new_instancia, p_quantidade);
+
+    UPDATE InstanciaItem
+    SET quantidade = quantidade - p_quantidade
+    WHERE id_instancia = p_id_instancia;
+    DELETE FROM InstanciaItem WHERE id_instancia = p_id_instancia AND quantidade <= 0;
+
+    RETURN 'Compra realizada com sucesso.';
+END;
+$$ LANGUAGE plpgsql;
