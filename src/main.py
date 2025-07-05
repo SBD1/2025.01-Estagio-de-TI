@@ -90,8 +90,8 @@ def game_loop(personagem_id, personagem_nome):
         if sala_info:
             nome_atual = sala_info[1]
             if nome_atual == 'Recepção':
-            if nome_atual == 'Cafeteria':
-                loja_tipo = 'Consumivel'
+                if nome_atual == 'Cafeteria':
+                    loja_tipo = 'Consumivel'
             elif nome_atual == 'Depósito':
                 loja_tipo = 'Equipamento'
 
