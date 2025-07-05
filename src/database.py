@@ -166,6 +166,29 @@ def get_player_coins(personagem_id):
     return coins
 
 
+def get_player_stats(personagem_id):
+    """Retorna status completo do jogador."""
+    stats = None
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT nome, nivel, xp, respeito, coins, ataque, defesa, vida, status
+                FROM Estagiario
+                WHERE id_personagem = %s;
+                """,
+                (personagem_id,),
+            )
+            stats = cur.fetchone()
+    except Exception as e:
+        print(f"Erro ao buscar status do jogador: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return stats
+
+
 def buy_item(personagem_id, instancia_id, quantidade):
     """Executa a compra de um item da loja."""
     return call_db_function("comprar_item", personagem_id, instancia_id, quantidade)

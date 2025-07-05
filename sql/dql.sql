@@ -11,20 +11,26 @@ BEGIN
     WHERE numero_andar = 0;
 
     INSERT INTO Estagiario(
-        nome, 
-        xp, 
-        nivel, 
+        nome,
+        xp,
+        nivel,
         respeito,
         coins,
+        ataque,
+        defesa,
+        vida,
         status,
         andar_atual,
         sala_atual
     ) VALUES (
         p_nome_personagem,
-        0,      
-        1,    
-        50,    
-        100,   
+        0,
+        1,
+        50,
+        100,
+        10,
+        5,
+        100,
         'Normal',
         v_sala_inicial.id_andar,
         v_sala_inicial.id_sala
@@ -232,6 +238,8 @@ DECLARE
     v_inventario INT;
     v_coins INT;
     v_new_instancia INT;
+    v_tipo TEXT;
+    v_bonus INT;
 BEGIN
     SELECT ii.id_item, ii.quantidade, i.preco_base
     INTO v_item_id, v_quant_disp, v_preco
@@ -263,6 +271,23 @@ BEGIN
 
     INSERT INTO ItemInventario(id_inventario, id_instancia, quantidade)
     VALUES (v_inventario, v_new_instancia, p_quantidade);
+
+    -- Aplica bonus do item nas caracteristicas do jogador
+    SELECT tipo INTO v_tipo FROM Item WHERE id_item = v_item_id;
+
+    IF v_tipo = 'PowerUp' THEN
+        SELECT bonus_ataque INTO v_bonus FROM PowerUp WHERE id_item = v_item_id;
+        UPDATE Estagiario SET ataque = ataque + v_bonus * p_quantidade
+        WHERE id_personagem = p_id_estagiario;
+    ELSIF v_tipo = 'Consumivel' THEN
+        SELECT recuperacao_vida INTO v_bonus FROM Consumivel WHERE id_item = v_item_id;
+        UPDATE Estagiario SET vida = LEAST(vida + v_bonus * p_quantidade, 100)
+        WHERE id_personagem = p_id_estagiario;
+    ELSIF v_tipo = 'Equipamento' THEN
+        SELECT bonus_permanente INTO v_bonus FROM Equipamento WHERE id_item = v_item_id;
+        UPDATE Estagiario SET ataque = ataque + v_bonus * p_quantidade
+        WHERE id_personagem = p_id_estagiario;
+    END IF;
 
     UPDATE InstanciaItem
     SET quantidade = quantidade - p_quantidade
