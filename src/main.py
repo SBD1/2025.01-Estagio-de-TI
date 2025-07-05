@@ -82,7 +82,7 @@ def game_loop(personagem_id, personagem_nome):
 
         nome_sala, descricao_sala, saidas_disponiveis = location_details
         sala_id = sala_info[0] if sala_info else None
-
+        
         npcs_na_sala = get_npcs_in_room(sala_id) if sala_id else []
         tem_vendedor = any(tipo in ('almoxarife', 'barista') for _, _, tipo in npcs_na_sala)
 
@@ -108,6 +108,7 @@ def game_loop(personagem_id, personagem_nome):
         
         # 3. Exibe o menu de opções numerado
         for i, saida in enumerate(saidas_disponiveis, start=1):
+        l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
             saida_fmt = saida
             s_lower = saida.lower()
             if s_lower.startswith("subir") or s_lower.startswith("descer") or "cafeteria" in s_lower:
@@ -149,16 +150,17 @@ def game_loop(personagem_id, personagem_nome):
                 time.sleep(1) # Pequena pausa para o jogador ler
             
             elif loja_disponivel and escolha_num == loja_idx:
+            l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
                 abrir_loja(personagem_id, loja_tipo)
             else:
                 print("\nOpção inválida. Tente novamente.")
                 time.sleep(2)
-
         except ValueError:
             print("\nPor favor, digite um número. Tente novamente.")
             time.sleep(2)
 
 
+l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
 def abrir_loja(personagem_id, item_type):
     """Interface simples de compra de itens."""
     while True:

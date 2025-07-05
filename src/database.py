@@ -110,12 +110,14 @@ def get_npcs_in_room(sala_id):
             conn.close()
     return npcs
 
+l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
 def get_items_for_sale(item_type=None):
     """Lista itens disponíveis na loja, opcionalmente filtrando por tipo."""
     itens = []
     conn = get_connection()
     try:
         with conn.cursor() as cur:
+       l8h0ii-codex/adicionar-lógica-de-itens-e-npcs
             if item_type:
                 cur.execute(
                     """
@@ -137,6 +139,7 @@ def get_items_for_sale(item_type=None):
                     ORDER BY i.nome;
                     """
                 )
+
             itens = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar itens da loja: {e}")
@@ -144,8 +147,6 @@ def get_items_for_sale(item_type=None):
         if conn:
             conn.close()
     return itens
-
-
 
 def get_player_coins(personagem_id):
     """Retorna a quantidade atual de moedas do jogador."""
