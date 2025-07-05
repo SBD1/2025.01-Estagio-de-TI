@@ -26,6 +26,7 @@ INSERT INTO Sala (id_andar, nome, descricao) VALUES
 (13, 'Sala Central', 'Área principal da recepção.'),
 (13, 'Recepção', 'Balcão com recepcionista.'),
 (13, 'Área de Espera', 'Sofás e revistas tech.'),
+(13, 'Cafeteria', 'O aroma de café fresco invade o ambiente.'),
 (1, 'Sala Central', 'Central do suporte básico.'),
 (1, 'Help Desk', 'Baias de atendimento.'),
 (1, 'Sala de Treinamento', 'Sala com computadores em fileiras.'),
@@ -72,15 +73,18 @@ INSERT INTO ConexaoSala (id_sala_origem, id_sala_destino) VALUES
 -- Térreo 
 (7, 8),
 (8, 7), 
-(7, 9), 
-(9, 7), 
--- Andar 1 
-(10, 11), 
-(11, 10), 
-(10, 12), 
-(12, 10), 
--- Andar 2 
-(13, 14), 
+(7, 9),
+(9, 7),
+-- Ligação da recepção com a cafeteria
+(7, 10),
+(10, 7),
+-- Andar 1
+(11, 12),
+(12, 11),
+(11, 13),
+(13, 11),
+-- Andar 2
+(13, 14),
 (14, 13),
 (13, 15), 
 (15, 13), 
@@ -137,7 +141,8 @@ INSERT INTO Personagem (nome, tipo, descricao) VALUES
 ('Raimunda', 'NPC', 'Responsável pelo Data Center'),
 ('Cristiano', 'NPC', 'Almoxarife dedicado'),
 ('Manoel', 'NPC', 'Responsável pelo Data Center'),
-('Ana', 'NPC', 'Almoxarife dedicado');
+('Ana', 'NPC', 'Almoxarife dedicado'),
+('Breno', 'NPC', 'Barista simpático');
 
 -- PowerUps
 INSERT INTO Item (nome, descricao, tipo, preco_base) VALUES
@@ -175,11 +180,15 @@ INSERT INTO Equipamento (id_item, slot, bonus_permanente) VALUES
 (10, 'Corpo', 30); 
 
 INSERT INTO InstanciaItem (id_item, quantidade, local_atual) VALUES
-(5, 10, 'Loja'),   
-(6, 8, 'Loja'),    
-(7, 5, 'Loja'),   
-(4, 1, 'Chao'),  
-(2, 1, 'Chao'),    
+(5, 10, 'Loja'),
+(6, 8, 'Loja'),
+(7, 5, 'Loja'),
+(4, 15, 'Loja'),
+(8, 3, 'Loja'),
+(9, 2, 'Loja'),
+(10, 1, 'Loja'),
+(4, 1, 'Chao'),
+(2, 1, 'Chao'),
 (8, 1, 'Inventario'),  
 (5, 2, 'Inventario');  
 
@@ -194,7 +203,8 @@ INSERT INTO NPC (id_personagem, tipo, andar_atual, dialogo_padrao) VALUES
 (6, 'colega', 13, 'Bem-vindo! Como posso ajudar?'),
 (7, 'colega', 11, 'Os servidores precisam estar sempre funcionando...'),
 (8, 'almoxarife', 12, 'Preciso organizar esse estoque...'),
-(9, 'colega', 13, 'Bem-vindo! Como posso ajudar?');
+(9, 'colega', 13, 'Bem-vindo! Como posso ajudar?'),
+(10, 'barista', 13, 'Bom dia! Que tal um cafezinho?');
 
 INSERT INTO Inimigo (id_inimigo, nome, ataque) VALUES
 (1, 'Bug', 'Ataque bizonho'),
