@@ -108,7 +108,11 @@ def game_loop(personagem_id, personagem_nome):
         
         # 3. Exibe o menu de opções numerado
         for i, saida in enumerate(saidas_disponiveis, start=1):
-            print(f"  [{i}] {saida}")
+            saida_fmt = saida
+            s_lower = saida.lower()
+            if s_lower.startswith("subir") or s_lower.startswith("descer") or "cafeteria" in s_lower:
+                saida_fmt = f"({saida})"
+            print(f"  [{i}] {saida_fmt}")
 
         next_idx = len(saidas_disponiveis) + 1
         if loja_disponivel:
