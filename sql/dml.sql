@@ -1,23 +1,6 @@
-# DML - Data Manipulation Language
+INSERT INTO Mundo (id_mundo, nome, data_inicio) VALUES
+(1, 'Mundo dos estagiários', CURRENT_DATE);
 
-## Introdução
-
-A Linguagem de Manipulação de Dados (DML) é um conjunto de comandos SQL que permite a inserção, atualização, consulta e exclusão de dados em um banco de dados, populando a estrutura criada pela DDL.
-
-## Scripts SQL
-
-As inserções iniciais agora estão agrupadas em
-[`sql/dml.sql`](../../sql/dml.sql). A listagem a seguir detalha cada
-bloco de comandos utilizado.
-
-### V16__Mundo_insert.sql
-```sql
-INSERT INTO Mundo (nome, descricao) VALUES
-('Empresa TechStyle', 'Uma empresa de tecnologia moderna com vários andares');
-```
-
-### V17__Andar_insert.sql
-```sql
 INSERT INTO Andar(id_andar, id_mundo, numero, nome) VALUES
 (11, 1, -2, 'Subsolo 2: Data Center'),
 (12, 1, -1, 'Subsolo 1: Almoxarifado'),
@@ -32,11 +15,119 @@ INSERT INTO Andar(id_andar, id_mundo, numero, nome) VALUES
 (8, 1, 8, 'Andar 8: Backend'),
 (9, 1, 9, 'Andar 9: DevOps'),
 (10, 1, 10, 'Andar 10: Diretoria');
-```
+
+INSERT INTO Sala (id_andar, nome, descricao) VALUES
+(11, 'Sala Central', 'Uma sala gigantesca e gelada com servidores.'),
+(11, 'Data Center', 'Fileiras de servidores zumbindo.'),
+(11, 'Sala de Controle', 'Monitores mostrando métricas dos servidores.'),
+(12, 'Sala Central', 'Área principal do almoxarifado.'),
+(12, 'Depósito', 'Prateleiras com equipamentos.'),
+(12, 'Oficina', 'Bancadas para manutenção.'),
+(13, 'Sala Central', 'Área principal da recepção.'),
+(13, 'Recepção', 'Balcão com recepcionista.'),
+(13, 'Área de Espera', 'Sofás e revistas tech.'),
+(1, 'Sala Central', 'Central do suporte básico.'),
+(1, 'Help Desk', 'Baias de atendimento.'),
+(1, 'Sala de Treinamento', 'Sala com computadores em fileiras.'),
+(2, 'Sala Central', 'Centro da oficina de hardware.'),
+(2, 'Laboratório', 'Bancadas com equipamentos.'),
+(2, 'Depósito de Peças', 'Estoque organizado.'),
+(3, 'Sala Central', 'Central de suporte remoto.'),
+(3, 'NOC', 'Sala de monitoramento.'),
+(3, 'Sala de Atendimento', 'Estações de trabalho.'),
+(4, 'Sala Central', 'Centro de infraestrutura.'),
+(4, 'Sala de Servidores', 'Racks de equipamentos.'),
+(4, 'Sala de Redes', 'Central de cabeamento.'),
+(5, 'Sala Central', 'Centro de operações de rede.'),
+(5, 'Sala de Monitoramento', 'Telões com métricas.'),
+(5, 'Laboratório de Redes', 'Área de testes.'),
+(6, 'Sala Central', 'Centro de segurança.'),
+(6, 'SOC', 'Centro de operações de segurança.'),
+(6, 'Sala de Testes', 'Ambiente isolado para testes.'),
+(7, 'Sala Central', 'Área de desenvolvimento web.'),
+(7, 'Frontend', 'Time de frontend.'),
+(7, 'Design', 'Equipe de UX/UI.'),
+(8, 'Sala Central', 'Área de backend.'),
+(8, 'Desenvolvimento', 'Time de backend.'),
+(8, 'Arquitetura', 'Planejamento de sistemas.'),
+(9, 'Sala Central', 'Centro de DevOps.'),
+(9, 'CI/CD', 'Pipelines e automação.'),
+(9, 'Containers', 'Orquestração e deploy.'),
+(10, 'Sala Central', 'Recepção da diretoria.'),
+(10, 'Sala do Chefe', 'Escritório principal.'),
+(10, 'Sala de Reuniões', 'Mesa grande e tela de projeção.');
 
 
-### V20__Personagens_insert.sql
-```sql
+INSERT INTO ConexaoSala (id_sala_origem, id_sala_destino) VALUES
+-- Subsolo 2
+(1, 2), 
+(2, 1), 
+(1, 3), 
+(3, 1),
+-- Subsolo 1 
+(4, 5), 
+(5, 4),
+(4, 6), 
+(6, 4), 
+-- Térreo 
+(7, 8),
+(8, 7), 
+(7, 9), 
+(9, 7), 
+-- Andar 1 
+(10, 11), 
+(11, 10), 
+(10, 12), 
+(12, 10), 
+-- Andar 2 
+(13, 14), 
+(14, 13),
+(13, 15), 
+(15, 13), 
+-- Andar 3 
+(16, 17), 
+(17, 16), 
+(16, 18), 
+(18, 16), 
+-- Andar 4 
+(19, 20),
+(20, 19), 
+(19, 21), 
+(21, 19), 
+-- Andar 5 
+(22, 23),
+(23, 22), 
+(22, 24), 
+(24, 22), 
+-- Andar 6 
+(25, 26),
+(26, 25), 
+(25, 27), 
+(27, 25), 
+-- Andar 7
+(28, 29), 
+(29, 28), 
+(28, 30), 
+(30, 28), 
+-- Andar 8
+(31, 32), 
+(32, 31),
+(31, 33), 
+(33, 31), 
+-- Andar 9
+(34, 35), 
+(35, 34), 
+(34, 36), 
+(36, 34), 
+-- Andar 10 
+(37, 38), 
+(38, 37), 
+(37, 39), 
+(39, 37); 
+
+
+
+
 INSERT INTO Personagem (nome, tipo, descricao) VALUES
 ('Severino', 'NPC', 'Responsável pelo Data Center'),
 ('João', 'NPC', 'Almoxarife dedicado'),
@@ -47,9 +138,7 @@ INSERT INTO Personagem (nome, tipo, descricao) VALUES
 ('Cristiano', 'NPC', 'Almoxarife dedicado'),
 ('Manoel', 'NPC', 'Responsável pelo Data Center'),
 ('Ana', 'NPC', 'Almoxarife dedicado');
-```
-### V21__Item_insert.sql
-```sql
+
 -- PowerUps
 INSERT INTO Item (nome, descricao, tipo, preco_base) VALUES
 ('Monitor Extra', 'Aumenta produtividade temporariamente', 'PowerUp', 100),
@@ -93,9 +182,9 @@ INSERT INTO InstanciaItem (id_item, quantidade, local_atual) VALUES
 (2, 1, 'Chao'),    
 (8, 1, 'Inventario'),  
 (5, 2, 'Inventario');  
-```
-### V27__Npc_insert.sql
-```sql
+
+
+
 INSERT INTO NPC (id_personagem, tipo, andar_atual, dialogo_padrao) VALUES
 (1, 'colega', 11, 'Os servidores precisam estar sempre funcionando...'),
 (2, 'almoxarife', 12, 'Preciso organizar esse estoque...'),
@@ -106,10 +195,7 @@ INSERT INTO NPC (id_personagem, tipo, andar_atual, dialogo_padrao) VALUES
 (7, 'colega', 11, 'Os servidores precisam estar sempre funcionando...'),
 (8, 'almoxarife', 12, 'Preciso organizar esse estoque...'),
 (9, 'colega', 13, 'Bem-vindo! Como posso ajudar?');
-```
 
-### V29__Inimigo_insert.sql
-```sql
 INSERT INTO Inimigo (id_inimigo, nome, ataque) VALUES
 (1, 'Bug', 'Ataque bizonho'),
 (2, 'Malware', 'dogsniffing'),
@@ -121,10 +207,7 @@ INSERT INTO InstanciaInimigo (id_inimigo, vida, dano) VALUES
 (2, 500, 30),
 (2, 500, 30),
 (3, 900, 100);
-```
 
-### V30__Missao_insert.sql
-```sql
 INSERT INTO Missao (nome, descricao, dialogo_inicial, tipo, xp_recompensa, moedas_recompensa, npc_origem) VALUES
 -- Missões de Combate
 ('Vírus no Sistema', 
@@ -171,9 +254,4 @@ INSERT INTO MissaoConversa (id_missao, id_npc_alvo) VALUES
 INSERT INTO MissaoEntrega (id_missao, id_item, quantidade, id_npc_destino) VALUES
 (5, 1, 1, 5), -- Entregar 1 café para o dev
 (6, 2, 3, 4);  -- Entregar 3 peças para o suporte
-```
-## Histórico de Versão
 
-| Versão | Data | Descrição | Autor(es) |
-| :-: | :-: | :-: | :-: |
-| `1.0`  | 16/06/2025 | Versão inicial do DML com dados de andares, salas e conexões. | [Emivalto da Costa Tavares Junior](https://github.com/EmivaltoJrr) e [Lucas Mendonça Arruda](https://github.com/lucasarruda9) |

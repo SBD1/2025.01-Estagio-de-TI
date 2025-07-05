@@ -1,17 +1,3 @@
-# DQL - Data Query Language
-
-# Introdução
-
-A Linguagem de Consulta de Dados (DQL) é um subconjunto do SQL usado para realizar consultas em bancos de dados. No contexto do nosso jogo, as consultas DQL são essenciais para recuperar informações sobre o estado do jogo, como a localização do jogador, seu inventário, missões disponíveis e status dos NPCs.
-
-## Scripts SQL
-
-Funções e triggers foram reunidas em um único arquivo:
-[`sql/dql.sql`](../../sql/dql.sql). Os trechos abaixo ilustram cada
-parte presente nesse script.
-
-### V24__CriarPersonagem_funcao.sql
-```sql
 CREATE OR REPLACE FUNCTION criar_personagem(
     p_nome_personagem VARCHAR(100)
 ) RETURNS TEXT AS $$
@@ -69,10 +55,8 @@ AFTER INSERT ON Estagiario
 FOR EACH ROW
 EXECUTE FUNCTION criar_inventario_estagiario();
 
-```
 
-### V25__LocalDetalhado_funcao.sql
-```sql
+
 CREATE OR REPLACE FUNCTION descrever_local_detalhado(
     p_id_personagem INT
 ) RETURNS TABLE(nome_local TEXT, descricao TEXT, saidas TEXT[]) AS $$
@@ -115,10 +99,7 @@ BEGIN
         ); -- esse text é para transformar em um vetor as saidas
 END;
 $$ LANGUAGE plpgsql;
-```
 
-### V26__MoverPersonagem_funcao.sql
-```sql
 CREATE OR REPLACE FUNCTION mover_personagem(
     p_id_personagem INT,
     p_direcao_texto VARCHAR(100)
@@ -174,10 +155,7 @@ BEGIN
     RETURN 'Movimento inválido.';
 END;
 $$ LANGUAGE plpgsql;
-```
 
-### V31__VerificarItem_trigger.sql
-```sql
 CREATE OR REPLACE FUNCTION verificar_item_tipo_unico() RETURNS TRIGGER AS $$
 DECLARE
     tipo_item TEXT;
@@ -239,99 +217,4 @@ BEFORE INSERT OR UPDATE ON Equipamento
 FOR EACH ROW
 EXECUTE FUNCTION verificar_item_tipo_unico();
 
-```
 
-## Outras buscas importantes
-```sql
--- 1.localização do jogador
-SELECT 
-    estagiario.id_personagem,
-    estagiario.andar_atual,
-    estagiario.sala_atual,
-    andar.numero,
-    andar.nome,
-    sala.nome,
-    sala.descricao
-FROM Estagiario estagiario
-JOIN Andar andar ON estagiario.andar_atual = andar.id_andar
-JOIN Sala sala ON estagiario.sala_atual = sala.id_sala;
-```
-
-```sql
--- 2.inventário do jogador
-SELECT 
-    item.nome,
-    item.tipo,
-    item.descricao,
-    iteminventario.quantidade
-FROM ItemInventario iteminventario
-JOIN InstanciaItem instanciaitem ON iteminventario.id_instancia = instanciaitem.id_instancia
-JOIN Item item ON instanciaitem.id_item = item.id_item
-WHERE iteminventario.id_inventario = 1;
-```
-
-```sql
--- 3.NPCs suas missões
-SELECT 
-    npc.id_personagem,
-    personagem.nome,
-    npc.tipo,
-    npc.andar_atual,
-    npc.dialogo_padrao,
-    missao.id_missao,
-    missao.nome,
-    missao.descricao,
-    missao.tipo,
-    missao.xp_recompensa,
-    missao.moedas_recompensa
-FROM NPC npc
-JOIN Personagem personagem ON npc.id_personagem = personagem.id_personagem
-LEFT JOIN Missao missao ON missao.npc_origem = npc.id_personagem;
-```
-
-```sql
--- 4.status das missões do jogador
-SELECT 
-    missao.id_missao,
-    missao.nome,
-    missao.descricao,
-    missao.tipo,
-    missao.xp_recompensa,
-    missao.moedas_recompensa,
-    missaostatus.status
-FROM Missao missao
-JOIN MissaoStatus missaostatus ON missao.id_missao = missaostatus.id_missao
-WHERE missaostatus.id_estagiario = 1;
-```
-
-```sql
--- 5.itens da cafeteria
-SELECT 
-    item.id_item,
-    item.nome,
-    item.descricao,
-    item.tipo,
-    item.preco_base,
-    instanciaitem.quantidade
-FROM InstanciaItem instanciaitem
-JOIN Item item ON instanciaitem.id_item = item.id_item
-WHERE instanciaitem.local_atual = 'Loja'
-ORDER BY item.tipo, item.preco_base;
-```
-
-```sql
--- 6. Status do Estagiário
-SELECT 
-    estagiario.id_personagem,
-    estagiario.nome,
-    estagiario.nivel,
-    estagiario.xp,
-    estagiario.coins,
-    estagiario.status,
-    estagiario.respeito
-FROM Estagiario estagiario;
-```
-
-```sql
-SELECT * FROM Inimigo; --busca inimigos
-```

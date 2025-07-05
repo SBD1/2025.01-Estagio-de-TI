@@ -5,7 +5,11 @@
 
 A Linguagem de Definição de Dados (DDL) e as funções de banco de dados são um conjunto de comandos e lógicas usados em Sistemas de Gerenciamento de Banco de Dados (SGBD) para criar, alterar e gerenciar a estrutura e o comportamento de um banco de dados. Este documento define o esquema para um jogo de aventura textual.
 
-## Migrações do Banco de Dados
+## Scripts SQL
+
+Os scripts de criação de estruturas foram consolidados no arquivo
+[`sql/ddl.sql`](../../sql/ddl.sql). Abaixo seguem as definições por etapa
+para referência.
 
 ### V1__Mundo_table.sql
 ```sql
