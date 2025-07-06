@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS Missao (
     xp_recompensa INT NOT NULL,
     moedas_recompensa INT NOT NULL,
     npc_origem INT NOT NULL,
-    FOREIGN KEY (npc_origem) REFERENCES NPC(id_personagem)
+    FOREIGN KEY (npc_origem) REFERENCES NPC(id_npc)
 );
 
 CREATE TABLE IF NOT EXISTS MissaoCombate (
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS MissaoConversa (
     id_missao INT PRIMARY KEY,
     id_npc_alvo INT NOT NULL,
     FOREIGN KEY (id_missao) REFERENCES Missao(id_missao),
-    FOREIGN KEY (id_npc_alvo) REFERENCES NPC(id_personagem)
+    FOREIGN KEY (id_npc_alvo) REFERENCES NPC(id_npc)
 );
 
 -- Tabela específica para missões de entrega
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS MissaoEntrega (
     id_npc_destino INT NOT NULL,
     FOREIGN KEY (id_missao) REFERENCES Missao(id_missao),
     FOREIGN KEY (id_item) REFERENCES Item(id_item),
-    FOREIGN KEY (id_npc_destino) REFERENCES NPC(id_personagem)
+    FOREIGN KEY (id_npc_destino) REFERENCES NPC(id_npc)
 );
 
 CREATE TABLE IF NOT EXISTS MissaoStatus (

@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS Demanda (
     andar INT NOT NULL, 
     FOREIGN KEY (andar) REFERENCES Andar(id_andar),
     id_npc INT,
-    FOREIGN KEY (id_npc) REFERENCES NPC(id_personagem)
+    FOREIGN KEY (id_npc) REFERENCES NPC(id_npc)
 );
 
 CREATE TABLE IF NOT EXISTS DemandaConcluida (
