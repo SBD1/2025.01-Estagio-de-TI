@@ -6,6 +6,9 @@ DB_NAME = "jogo"
 DB_USER = "jogador"
 DB_PASS = "sbd1_password"
 
+#Esse arquivo conecta e acessa o banco, pegando valores úteis para ser utilizados em funções com get
+
+
 def get_connection():
     try:
         conn = psycopg2.connect(host=DB_HOST, port=DB_PORT, dbname=DB_NAME, user=DB_USER, password=DB_PASS)
@@ -15,13 +18,16 @@ def get_connection():
         print("Verifique se o container Docker está rodando e as credenciais estão corretas.")
         return None
 
-def call_db_function(function_name, *args):
+def call_db_function(function_name, *args, tudo=False):
     result = None
     conn = get_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(f"SELECT {function_name}({', '.join(['%s'] * len(args))});", args)
-            result = cur.fetchone()[0]
+            if tudo == False:
+                result = cur.fetchone()[0]
+            elif tudo == True:
+                result = cur.fetchall()
             conn.commit()
     except Exception as e:
         print(f"Erro ao executar a função '{function_name}': {e}")
@@ -78,24 +84,13 @@ def get_location_details(personagem_id):
             conn.close()
     return details
 
-def get_npcs_in_room(sala_id):
+def get_dialogo_npc(id_npc):
     conn = get_connection()
-    result = []
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                SELECT n.id_personagem, p.nome, n.tipo
-                FROM NPC n
-                JOIN Personagem p ON n.id_personagem = p.id_personagem
-                WHERE p.id_sala = %s
-            """, (sala_id,))
-            result = cursor.fetchall()
-    except Exception as e:
-        print(f"Erro ao buscar NPCs: {e}")
-    finally:
-        if conn:
-            conn.close()
-    return resulty
+    with conn.cursor() as cur:
+        cur.execute("SELECT dialogo FROM Dialogo WHERE id_npc = %s LIMIT 1;", (id_npc,))
+        row = cur.fetchone()
+    conn.close()
+    return row[0] if row else "O NPC não tem nada a dizer."
 
 def get_pcs_in_room(sala_id):
     conn = get_connection()
@@ -112,3 +107,32 @@ def get_pcs_in_room(sala_id):
         if conn:
             conn.close()
     return result
+
+def get_inventario_itens(personagem_id):
+    conn = get_connection()
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT i.nome, ii.quantidade
+            FROM Inventario inv
+            JOIN ItemInventario ii ON ii.id_inventario = inv.id_inventario
+            JOIN InstanciaItem inst ON inst.id_instancia = ii.id_instancia
+            JOIN Item i ON i.id_item = inst.id_item
+            WHERE inv.id_estagiario = %s
+        """, (personagem_id,))
+        resultados = cur.fetchall()
+    conn.close()
+    return resultados
+    
+def get_itens_no_chao(sala_id):
+    conn = get_connection()
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT ii.id_instancia, i.nome
+            FROM ItemNoChao nc
+            JOIN InstanciaItem ii ON nc.id_instancia = ii.id_instancia
+            JOIN Item i ON ii.id_item = i.id_item
+            WHERE nc.id_sala = %s;
+        """, (sala_id,))
+        itens = cur.fetchall()
+    conn.close()
+    return itens
