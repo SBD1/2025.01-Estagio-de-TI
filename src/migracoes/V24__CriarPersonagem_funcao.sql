@@ -32,11 +32,6 @@ BEGIN
 
     RETURN 'Estagiário "' || p_nome_personagem || '" criado com sucesso! (ID: ' || v_id_estagiario || ')';
 
-EXCEPTION
-    WHEN unique_violation THEN
-        RETURN 'Erro: Já existe um estagiário com este nome.';
-    WHEN OTHERS THEN
-        RETURN 'Erro inesperado ao criar estagiário: ' || SQLERRM;
 END;
 $$ LANGUAGE plpgsql;
 

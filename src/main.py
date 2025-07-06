@@ -62,6 +62,8 @@ def iniciar_jogo():
         time.sleep(2)
 
 def game_loop(personagem_id, personagem_nome):
+    # Verifica se precisa gerar inimigos automaticamente no início
+    verificar_e_gerar_inimigos()
 
     while True:
         clear_screen()

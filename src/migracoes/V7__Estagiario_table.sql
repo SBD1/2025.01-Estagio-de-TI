@@ -16,3 +16,4 @@ CREATE TABLE IF NOT EXISTS Estagiario (
     FOREIGN KEY (sala_atual) REFERENCES Sala(id_sala),
     CONSTRAINT UQ_Estagiario_Nome UNIQUE(nome)
 );
+

@@ -67,10 +67,10 @@ def get_all_characters():
     return characters
 
 def get_location_details(personagem_id):
-    """
-    Chama a função 'descrever_local_detalhado' e retorna os detalhes
-    da sala de forma estruturada (nome, descricao, lista_de_saidas).
-    """
+    
+    #Chama a função 'descrever_local_detalhado' e retorna os detalhes
+    #da sala de forma estruturada (nome, descricao, lista_de_saidas).
+    
     details = None
     conn = get_connection()
     try:
