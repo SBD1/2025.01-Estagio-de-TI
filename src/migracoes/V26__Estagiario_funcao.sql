@@ -53,3 +53,52 @@ BEGIN
     RETURN 'Movimento inválido.';
 END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION pegar_respeito(p_id_personagem INT) RETURNS INT AS $$
+DECLARE
+    v_respeito INT;
+BEGIN
+    SELECT respeito
+    INTO v_respeito
+    FROM Estagiario
+    WHERE id_personagem = p_id_personagem;
+
+    RETURN v_respeito;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION verificar_respeito_minimo()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.respeito < 5 THEN
+        RAISE EXCEPTION 'Você perdeu o jogo! Seu respeito caiu abaixo de 5.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_verificar_respeito ON Estagiario;
+
+CREATE TRIGGER trigger_verificar_respeito
+BEFORE UPDATE OF respeito ON Estagiario
+FOR EACH ROW
+EXECUTE FUNCTION verificar_respeito_minimo();
+
+
+CREATE OR REPLACE FUNCTION pode_conversar_com_npc(p_id_estagiario INT, p_id_npc INT)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_respeito_estagiario INT;
+    v_respeito_npc INT;
+BEGIN
+    SELECT respeito INTO v_respeito_estagiario FROM Estagiario WHERE id_personagem = p_id_estagiario;
+    SELECT respeito_personagem INTO v_respeito_npc FROM NPC WHERE id_npc = p_id_npc;
+
+    IF v_respeito_estagiario >= v_respeito_npc THEN
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;

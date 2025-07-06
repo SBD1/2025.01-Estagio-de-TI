@@ -31,6 +31,9 @@ BEGIN
     ) RETURNING id_personagem INTO v_id_estagiario;
 
     RETURN 'Estagiário "' || p_nome_personagem || '" criado com sucesso! (ID: ' || v_id_estagiario || ')';
+    EXCEPTION
+    WHEN unique_violation THEN
+        RETURN 'Erro: Já existe um estagiário com este nome.';
 
 END;
 $$ LANGUAGE plpgsql;
@@ -62,9 +65,7 @@ BEGIN
     VALUES (v_id_item, 1, 'Inventario', NEW.id_personagem)
     RETURNING id_instancia INTO v_id_instancia;
 
-    -- Insere a instância no inventário
-    INSERT INTO ItemInventario (id_inventario, id_instancia)
-    VALUES (v_id_inventario, v_id_instancia);
+
 
     RETURN NEW;
 END;

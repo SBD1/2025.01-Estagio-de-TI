@@ -25,5 +25,6 @@ CREATE TABLE PC (
     id_sala INT NOT NULL,
     FOREIGN KEY(id_sala) REFERENCES Sala(id_sala)
 );
-
 ALTER TABLE PC ADD COLUMN ultimo_acesso TIMESTAMP;
+ALTER TABLE PC ADD COLUMN tipo VARCHAR(20) DEFAULT 'Normal' CHECK (tipo IN ('Normal', 'Bugado'));
+

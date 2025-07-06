@@ -98,7 +98,7 @@ def get_pcs_in_room(sala_id):
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
-                SELECT id_pc FROM PC WHERE id_sala = %s
+                SELECT id_pc, tipo FROM PC WHERE id_sala = %s
             """, (sala_id,))
             result = cursor.fetchall()
     except Exception as e:
@@ -136,3 +136,14 @@ def get_itens_no_chao(sala_id):
         itens = cur.fetchall()
     conn.close()
     return itens
+
+def pc_esta_inutilizavel(id_pc):
+    conn = get_connection()
+    with conn.cursor() as cur:
+        cur.execute("SELECT tipo FROM pc WHERE id_pc = %s;", (id_pc,))
+        tipo = cur.fetchone()[0]
+        if tipo == 'Bugado':
+            return False  #PC bugado não tem limite de inimigos
+        cur.execute("SELECT COUNT(*) FROM instanciainimigo WHERE id_pc = %s;", (id_pc,))
+        return cur.fetchone()[0] >= 8
+    conn.close()
