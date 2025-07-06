@@ -193,3 +193,23 @@ def get_player_stats(personagem_id):
 def buy_item(personagem_id, instancia_id, quantidade):
     """Executa a compra de um item da loja."""
     return call_db_function("comprar_item", personagem_id, instancia_id, quantidade)
+
+
+def use_elevator(personagem_id, andar_destino):
+    """Chama a função do banco de dados para usar o elevador."""
+    return call_db_function("usar_elevador", personagem_id, andar_destino)
+
+def get_all_floors():
+    """Retorna uma lista de todos os andares (numero, nome)."""
+    andares = []
+    conn = get_connection()
+    if not conn: return andares
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT numero, nome FROM Andar ORDER BY numero;")
+            andares = cur.fetchall()
+    except Exception as e:
+        print(f"Erro ao buscar andares: {e}")
+    finally:
+        if conn: conn.close()
+    return andares

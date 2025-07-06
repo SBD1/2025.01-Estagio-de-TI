@@ -62,57 +62,52 @@ FOR EACH ROW
 EXECUTE FUNCTION criar_inventario_estagiario();
 
 
-
+-- ATUALIZADO: Removemos a lógica de subir/descer escadas.
 CREATE OR REPLACE FUNCTION descrever_local_detalhado(
     p_id_personagem INT
 ) RETURNS TABLE(nome_local TEXT, descricao TEXT, saidas TEXT[]) AS $$
 DECLARE
     v_posicao RECORD;
 BEGIN
-    
+
     SELECT * INTO v_posicao
     FROM vw_posicao_estagiario --uma view
     WHERE id_personagem = p_id_personagem;
 
     RETURN QUERY
     WITH saidas_possiveis AS (
-        
+        -- Esta parte busca conexões no mesmo andar (Ex: Recepção -> Cafeteria)
         SELECT 'Ir para ' || nome_sala_destino as direcao
         FROM vw_conexoes_salas
         WHERE id_sala_origem = v_posicao.sala_atual
 
         UNION ALL
 
-     
-        SELECT 
-            CASE 
-                WHEN a.numero > v_posicao.numero_andar THEN 'Subir para ' || REGEXP_REPLACE(a.nome, '.*?: ', '')
-                WHEN a.numero < v_posicao.numero_andar THEN 'Descer para ' || REGEXP_REPLACE(a.nome, '.*?: ', '')
-            END
-        FROM Andar a
+        -- Adiciona a opção do elevador apenas se estiver na Sala Central
+        SELECT 'Chamar Elevador'
         WHERE v_posicao.nome_sala = 'Sala Central'
-        AND ((a.numero = v_posicao.numero_andar + 1 AND v_posicao.numero_andar < 10)
-          OR (a.numero = v_posicao.numero_andar - 1 AND v_posicao.numero_andar > -2))
     )
-    SELECT 
+    SELECT
         (v_posicao.nome_andar || E'\nSala: ' || v_posicao.nome_sala),
         v_posicao.descricao_sala,
         ARRAY(
-            SELECT direcao 
-            FROM saidas_possiveis 
+            SELECT direcao
+            FROM saidas_possiveis
             WHERE direcao IS NOT NULL
             ORDER BY direcao
-        ); -- esse text é para transformar em um vetor as saidas
+        );
 END;
 $$ LANGUAGE plpgsql;
 
+
+-- ATUALIZADO: Removemos a lógica de movimento de subir/descer.
+-- A função agora só lida com movimentos para salas adjacentes no mesmo andar.
 CREATE OR REPLACE FUNCTION mover_personagem(
     p_id_personagem INT,
     p_direcao_texto VARCHAR(100)
 ) RETURNS TEXT AS $$
 DECLARE
     v_posicao RECORD;
-    v_novo_andar INT;
     v_nova_sala INT;
 BEGIN
 
@@ -120,29 +115,7 @@ BEGIN
     FROM vw_posicao_estagiario --uma view
     WHERE id_personagem = p_id_personagem;
 
-    IF (p_direcao_texto LIKE 'Subir para%' OR p_direcao_texto LIKE 'Descer para%') THEN
-
-        IF v_posicao.nome_sala != 'Sala Central' THEN
-            RETURN 'Você só pode mudar de andar a partir da Sala Central.';
-        END IF;
-
-
-        SELECT sc.id_andar, sc.id_sala 
-        INTO v_novo_andar, v_nova_sala
-        FROM vw_sala_central sc
-        JOIN Andar a ON sc.id_andar = a.id_andar
-        WHERE p_direcao_texto LIKE '%' || REGEXP_REPLACE(a.nome, '.*?: ', '');
-
-        IF v_novo_andar IS NOT NULL THEN
-            UPDATE Estagiario 
-            SET andar_atual = v_novo_andar,
-                sala_atual = v_nova_sala
-            WHERE id_personagem = p_id_personagem;
-            
-            RETURN 'Você mudou de andar.';
-        END IF;
-
-    ELSIF p_direcao_texto LIKE 'Ir para%' THEN
+    IF p_direcao_texto LIKE 'Ir para%' THEN
 
         SELECT id_sala_destino INTO v_nova_sala
         FROM vw_conexoes_salas
@@ -150,10 +123,10 @@ BEGIN
         AND 'Ir para ' || nome_sala_destino = p_direcao_texto;
 
         IF v_nova_sala IS NOT NULL THEN
-            UPDATE Estagiario 
+            UPDATE Estagiario
             SET sala_atual = v_nova_sala
             WHERE id_personagem = p_id_personagem;
-            
+
             RETURN 'Você se moveu para outra sala.';
         END IF;
     END IF;
@@ -161,6 +134,7 @@ BEGIN
     RETURN 'Movimento inválido.';
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION verificar_item_tipo_unico() RETURNS TRIGGER AS $$
 DECLARE
@@ -224,8 +198,7 @@ FOR EACH ROW
 EXECUTE FUNCTION verificar_item_tipo_unico();
 
 
---
--- Procedimento para comprar item na loja
+
 CREATE OR REPLACE FUNCTION comprar_item(
     p_id_estagiario INT,
     p_id_instancia INT,
@@ -298,5 +271,45 @@ BEGIN
     DELETE FROM InstanciaItem WHERE id_instancia = p_id_instancia AND quantidade <= 0;
 
     RETURN 'Compra realizada com sucesso.';
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Função do elevador permanece a mesma
+CREATE OR REPLACE FUNCTION usar_elevador(
+    p_id_personagem INT,
+    p_andar_destino INT
+) RETURNS TEXT AS $$
+DECLARE
+    v_posicao RECORD;
+    v_nova_sala_id INT;
+BEGIN
+    -- Verifica a localização atual do personagem
+    SELECT * INTO v_posicao
+    FROM vw_posicao_estagiario
+    WHERE id_personagem = p_id_personagem;
+
+    -- Apenas permite o uso do elevador a partir da 'Sala Central'
+    IF v_posicao.nome_sala != 'Sala Central' THEN
+        RETURN 'Você precisa estar na Sala Central para chamar o elevador.';
+    END IF;
+
+    -- Encontra a 'Sala Central' do andar de destino
+    SELECT s.id_sala INTO v_nova_sala_id
+    FROM Sala s
+    JOIN Andar a ON s.id_andar = a.id_andar
+    WHERE s.nome = 'Sala Central' AND a.numero = p_andar_destino;
+
+    -- Se a sala de destino for encontrada, atualiza a posição do jogador
+    IF v_nova_sala_id IS NOT NULL THEN
+        UPDATE Estagiario
+        SET andar_atual = (SELECT id_andar FROM Andar WHERE numero = p_andar_destino),
+            sala_atual = v_nova_sala_id
+        WHERE id_personagem = p_id_personagem;
+        RETURN 'Você chegou ao ' || (SELECT nome FROM Andar WHERE numero = p_andar_destino) || '.';
+    ELSE
+        RETURN 'Andar de destino inválido.';
+    END IF;
+
 END;
 $$ LANGUAGE plpgsql;
