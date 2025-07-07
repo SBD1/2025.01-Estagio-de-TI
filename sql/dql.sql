@@ -313,3 +313,60 @@ BEGIN
 
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- =================================================================
+-- == NOVA FUNÇÃO ADICIONADA PARA CONCLUSÃO DE MISSÕES ==
+-- =================================================================
+
+CREATE OR REPLACE FUNCTION concluir_missao(
+    p_id_estagiario INT,
+    p_id_missao INT
+) RETURNS TEXT AS $$
+DECLARE
+    v_missao RECORD;
+    v_status_atual VARCHAR(20);
+    v_recompensa_texto TEXT;
+BEGIN
+    -- Verifica se a missão existe e está em andamento para este jogador
+    SELECT status INTO v_status_atual
+    FROM MissaoStatus
+    WHERE id_estagiario = p_id_estagiario AND id_missao = p_id_missao;
+
+    IF NOT FOUND THEN
+        RETURN 'Erro: Missão não iniciada pelo jogador.';
+    END IF;
+
+    IF v_status_atual = 'Concluída' THEN
+        RETURN 'Esta missão já foi concluída.';
+    END IF;
+
+    -- Busca os detalhes e recompensas da missão
+    SELECT nome, xp_recompensa, moedas_recompensa INTO v_missao
+    FROM Missao
+    WHERE id_missao = p_id_missao;
+
+    -- Atualiza os status do estagiário com as recompensas
+    UPDATE Estagiario
+    SET xp = xp + v_missao.xp_recompensa,
+        coins = coins + v_missao.moedas_recompensa
+    WHERE id_personagem = p_id_estagiario;
+
+    -- Atualiza o status da missão para 'Concluída'
+    UPDATE MissaoStatus
+    SET status = 'Concluída'
+    WHERE id_estagiario = p_id_estagiario AND id_missao = p_id_missao;
+
+    -- Insere o registro na tabela de missões concluídas
+    INSERT INTO MissaoConcluida (id_missao, id_estagiario, xp_ganho, moedas_ganhas)
+    VALUES (p_id_missao, p_id_estagiario, v_missao.xp_recompensa, v_missao.moedas_recompensa);
+
+    v_recompensa_texto := 'Missão "' || v_missao.nome || '" concluída! Você ganhou ' || v_missao.xp_recompensa || ' XP e ' || v_missao.moedas_recompensa || ' moedas!';
+
+    RETURN v_recompensa_texto;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN 'Erro inesperado ao concluir a missão: ' || SQLERRM;
+END;
+$$ LANGUAGE plpgsql;

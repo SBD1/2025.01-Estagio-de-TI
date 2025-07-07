@@ -1,6 +1,7 @@
 import os
 import time
 import sys
+# >> IMPORTS CORRIGIDOS E COMPLETOS <<
 from database import (
     call_db_function,
     get_all_characters,
@@ -13,7 +14,11 @@ from database import (
     buy_item,
     use_elevator,
     get_all_floors,
+    get_interactable_mission_in_room,
+    get_inimigos_na_sala # Adicionado para o combate
 )
+import interacoes
+
 
 def clear_screen():
     """Limpa a tela do terminal."""
@@ -33,8 +38,6 @@ def criar_personagem():
     mensagem = call_db_function('criar_personagem', nome)
     print(f"\n{mensagem}")
     time.sleep(3)
-
-##############################
 
 def exibir_introducao(nome_personagem):
     """Exibe o texto de introdução do jogo com efeito de digitação."""
@@ -65,22 +68,16 @@ def exibir_introducao(nome_personagem):
 
     """
     
-    # Loop que "digita" o texto
     for caractere in texto_intro:
         print(caractere, end='', flush=True)
-        # sys.stdout.flush() # Alternativa para flush=True, garante que o caractere apareça
-        
-        # Adiciona pausas diferentes para um efeito mais natural
         if caractere in ['.', '!', '?']:
-            time.sleep(0.5)  # Pausa longa no final de frases
+            time.sleep(0.5)
         elif caractere in [',', ';', ':']:
-            time.sleep(0.25) # Pausa média em pontuações
+            time.sleep(0.25)
         else:
-            time.sleep(0.03) # Pausa curta entre caracteres normais
+            time.sleep(0.03)
 
     input("\nPressione Enter para começar sua jornada...")
-
-###############################
 
 def iniciar_jogo():
     """Lida com a seleção de personagem e o início do loop do jogo."""
@@ -105,13 +102,8 @@ def iniciar_jogo():
 
         if not personagem_selecionado:
             raise ValueError
-
-        # >>> INÍCIO DA ALTERAÇÃO <<<
-        # A história é chamada aqui, com o nome do personagem escolhido.
+        
         exibir_introducao(personagem_selecionado[1])
-        # >>> FIM DA ALTERAÇÃO <<<
-
-        # A chamada para o loop do jogo acontece depois da introdução.
         game_loop(personagem_selecionado[0], personagem_selecionado[1])
 
     except (ValueError, IndexError):
@@ -230,9 +222,7 @@ def menu_elevador(personagem_id):
 def game_loop(personagem_id, personagem_nome):
     """O loop principal do jogo, com menu de opções numérico."""
     clear_screen()
-    # A mensagem inicial que estava aqui foi removida porque a introdução já cumpre esse papel.
     print(f"Iniciando o jogo com {personagem_nome}...")
-    print("(Pressione 'p' a qualquer momento para ver seu status)" )
     time.sleep(2)
 
     while True:
@@ -241,88 +231,123 @@ def game_loop(personagem_id, personagem_nome):
         location_details = get_location_details(personagem_id)
         sala_info = get_player_room_info(personagem_id)
 
-        if not location_details:
+        if not location_details or not sala_info:
             print("Erro ao carregar o local. Voltando ao menu.")
             time.sleep(3)
             break
 
         nome_sala, descricao_sala, saidas_disponiveis = location_details
-        sala_id = sala_info[0] if sala_info else None
+        sala_id = sala_info[0]
         
         saidas_disponiveis = saidas_disponiveis or []
-
-        # Verifica se a opção do elevador está disponível
-        elevador_disponivel = "Chamar Elevador" in saidas_disponiveis
+        npcs_na_sala = get_npcs_in_room(sala_id)
+        interactable_mission = get_interactable_mission_in_room(personagem_id, sala_id)
         
-        npcs_na_sala = get_npcs_in_room(sala_id) if sala_id else []
-        tem_vendedor = any(tipo in ('almoxarife', 'barista') for _, _, tipo in npcs_na_sala)
-
-        loja_tipo = None
-        if sala_info:
-            nome_atual = sala_info[1]
-            if nome_atual == 'Cafeteria':
-                loja_tipo = 'Consumivel'
-            elif nome_atual == 'Depósito':
-                loja_tipo = 'Equipamento'
-
-        loja_disponivel = tem_vendedor and loja_tipo is not None
+        # >> LÓGICA DE COMBATE ADICIONADA <<
+        inimigos_na_sala = get_inimigos_na_sala(sala_id)
 
         print(f"--- {personagem_nome} ---")
         print(f"Você está em: {nome_sala}")
         print(descricao_sala)
+        
+        if npcs_na_sala:
+            print("\nVocê vê por aqui:")
+            for _, nome_npc, tipo_npc in npcs_na_sala:
+                print(f"- {nome_npc} ({tipo_npc})")
+        
+        # >> AVISO DE PERIGO ADICIONADO <<
+        if inimigos_na_sala:
+            print("\n\033[91mPERIGO! Há inimigos nesta sala!\033[0m") # Texto em vermelho
+
         print("\n--------------------")
         print("O que você faz?\n")
 
-        opcoes_menu = [s for s in saidas_disponiveis]
-        
-        for i, saida in enumerate(opcoes_menu, start=1):
-            print(f"  [{i}] {saida}")
-
+        # Constrói o menu dinamicamente
+        opcoes_menu = {i + 1: saida for i, saida in enumerate(saidas_disponiveis)}
         next_idx = len(opcoes_menu) + 1
-        if loja_disponivel:
-            print(f"  [{next_idx}] Comprar Itens")
-            next_idx += 1
 
+        # >> LÓGICA DO MENU DE COMBATE ADICIONADA <<
+        if inimigos_na_sala:
+            opcoes_menu[next_idx] = "Entrar em Combate"
+            combat_idx = next_idx
+            next_idx += 1
+        else:
+            combat_idx = -1
+
+        if npcs_na_sala:
+            opcoes_menu[next_idx] = "Falar com alguém"
+            talk_idx = next_idx
+            next_idx += 1
+        else:
+            talk_idx = -1
+
+        if interactable_mission:
+            opcoes_menu[next_idx] = "Interagir com o ambiente"
+            interact_idx = next_idx
+            next_idx += 1
+        else:
+            interact_idx = -1
+            
+        opcoes_menu[next_idx] = "Ver Tarefas (Missões)"
+        tasks_idx = next_idx
+        
+        opcoes_menu[0] = "Voltar ao menu principal"
+
+        # Exibe o menu
+        for idx, desc in sorted(opcoes_menu.items()):
+            if idx != 0:
+                print(f"  [{idx}] {desc}")
         print("  [P] Ver status do personagem")
-        print(f"  [{next_idx}] Voltar ao menu principal")
+        print("  [0] Voltar ao menu principal")
         print("\n--------------------")
 
         try:
-            escolha_str = input("Sua escolha: ").strip()
+            escolha_str = input("Sua escolha: ").strip().lower()
             if not escolha_str:
                 continue
-            if escolha_str.lower() == 'p':
+            
+            if escolha_str == 'p':
                 mostrar_status(personagem_id)
                 continue
 
             escolha_num = int(escolha_str)
+
+            if escolha_num == 0:
+                print("\nVoltando ao menu principal...")
+                time.sleep(2)
+                break
+
+            if escolha_num in opcoes_menu:
+                opcao_escolhida = opcoes_menu[escolha_num]
+                
+                if opcao_escolhida in saidas_disponiveis:
+                    if opcao_escolhida == "Chamar Elevador":
+                        menu_elevador(personagem_id)
+                    else:
+                        call_db_function('mover_personagem', personagem_id, opcao_escolhida)
+                        time.sleep(1)
+                
+                # >> LÓGICA DE TRATAMENTO DE ESCOLHA ATUALIZADA <<
+                elif escolha_num == combat_idx:
+                    interacoes.iniciar_combate(personagem_id, sala_id)
+                elif escolha_num == talk_idx:
+                    interacoes.conversar_com_npc(personagem_id, sala_id)
+                elif escolha_num == interact_idx:
+                    interacoes.interagir_com_ambiente(personagem_id, interactable_mission)
+                elif escolha_num == tasks_idx:
+                    interacoes.exibir_missoes_e_demandas(personagem_id)
             
-            if 1 <= escolha_num <= len(opcoes_menu):
-                opcao_escolhida = opcoes_menu[escolha_num - 1]
-
-                if opcao_escolhida == "Chamar Elevador":
-                    # A chamada agora funciona porque menu_elevador está definido acima
-                    menu_elevador(personagem_id)
-                else: 
-                    print(f"\nTentando: {opcao_escolhida}...")
-                    call_db_function('mover_personagem', personagem_id, opcao_escolhida)
-                    time.sleep(1)
             else:
-                loja_idx = len(opcoes_menu) + 1 if loja_disponivel else -1
-                sair_idx = len(opcoes_menu) + 2 if loja_disponivel else len(opcoes_menu) + 1
+                print("\nOpção inválida. Tente novamente.")
+                time.sleep(2)
 
-                if loja_disponivel and escolha_num == loja_idx:
-                    abrir_loja(personagem_id, loja_tipo)
-                elif escolha_num == sair_idx:
-                    print("\nVoltando ao menu principal...")
-                    time.sleep(2)
-                    break
-                else:
-                    print("\nOpção inválida. Tente novamente.")
-                    time.sleep(2)
-        except (ValueError):
-            print("\nPor favor, digite um número. Tente novamente.")
+        except ValueError:
+            print("\nPor favor, digite um número válido.")
             time.sleep(2)
+        except Exception as e:
+            print(f"Ocorreu um erro inesperado: {e}")
+            time.sleep(3)
+
 
 def main_menu():
     """Exibe o menu principal e gerencia a navegação."""
@@ -351,6 +376,5 @@ def main_menu():
             time.sleep(2)
 
 if __name__ == "__main__":
-    conn_test = get_all_characters()
-    if conn_test is not None:
+    if get_all_characters() is not None:
         main_menu()

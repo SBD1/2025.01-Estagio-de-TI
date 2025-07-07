@@ -307,4 +307,3 @@ SELECT
 FROM Sala s
 JOIN Andar a ON s.id_andar = a.id_andar
 WHERE s.nome = 'Sala Central';
-
