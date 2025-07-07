@@ -213,3 +213,5 @@ def get_all_floors():
     finally:
         if conn: conn.close()
     return andares
+
+    ##teste
