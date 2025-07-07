@@ -106,6 +106,12 @@ def iniciar_jogo():
         if not personagem_selecionado:
             raise ValueError
 
+        # >>> INÍCIO DA ALTERAÇÃO <<<
+        # A história é chamada aqui, com o nome do personagem escolhido.
+        exibir_introducao(personagem_selecionado[1])
+        # >>> FIM DA ALTERAÇÃO <<<
+
+        # A chamada para o loop do jogo acontece depois da introdução.
         game_loop(personagem_selecionado[0], personagem_selecionado[1])
 
     except (ValueError, IndexError):
@@ -188,7 +194,6 @@ def mostrar_status(personagem_id):
     print("\n===========================")
     input("Pressione Enter para continuar...")
 
-# DEFINIÇÃO DO MENU DO ELEVADOR (AGORA POSICIONADA ANTES DE SER CHAMADA)
 def menu_elevador(personagem_id):
     """Exibe o menu de seleção de andares para o elevador."""
     clear_screen()
@@ -222,10 +227,10 @@ def menu_elevador(personagem_id):
         print("\nPor favor, digite um número válido.")
         time.sleep(2)
 
-# GAME LOOP QUE CHAMA A FUNÇÃO 'menu_elevador'
 def game_loop(personagem_id, personagem_nome):
     """O loop principal do jogo, com menu de opções numérico."""
     clear_screen()
+    # A mensagem inicial que estava aqui foi removida porque a introdução já cumpre esse papel.
     print(f"Iniciando o jogo com {personagem_nome}...")
     print("(Pressione 'p' a qualquer momento para ver seu status)" )
     time.sleep(2)
