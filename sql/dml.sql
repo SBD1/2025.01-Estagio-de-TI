@@ -211,13 +211,8 @@ INSERT INTO Missao (nome, descricao, dialogo_inicial, tipo, xp_recompensa, moeda
 ('Hardware Novo',
  'Leve estas peças novas para o pessoal do suporte.',
  'Pode levar estas peças pro pessoal?',
- 'Entrega', 60, 40, 2);
+ 'Entrega', 60, 40, 2),
 
--- ===============================================
--- NOVAS MISSÕES ADICIONADAS
--- ===============================================
-
-INSERT INTO Missao (nome, descricao, dialogo_inicial, tipo, xp_recompensa, moedas_recompensa, npc_origem) VALUES
 -- Missão de Manutenção (ID: 7)
 ('Check-up no Servidor',
  'Verifique e reinicie o servidor que está superaquecendo no Data Center.',
