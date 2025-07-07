@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS Missao (
     nome VARCHAR(100) NOT NULL,
     descricao TEXT NOT NULL,
     dialogo_inicial TEXT NOT NULL,
-    tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('Combate', 'Entrega', 'Conversa', 'Manutenção')),
+    tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('Combate', 'Entrega', 'Conversa')),
     xp_recompensa INT NOT NULL,
     moedas_recompensa INT NOT NULL,
     npc_origem INT NOT NULL,

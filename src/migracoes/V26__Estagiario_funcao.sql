@@ -68,11 +68,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION diminuir_respeito(
+    p_id_personagem INT,
+    p_valor INT
+) RETURNS VOID AS $$
+BEGIN
+    UPDATE Estagiario
+    SET respeito = GREATEST(respeito - p_valor, 0)
+    WHERE id_personagem = p_id_personagem;
+END;
+$$ LANGUAGE plpgsql;
+
+
 CREATE OR REPLACE FUNCTION verificar_respeito_minimo()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.respeito < 5 THEN
-        RAISE EXCEPTION 'Você perdeu o jogo! Seu respeito caiu abaixo de 5.';
+        RAISE NOTICE 'Você perdeu o jogo! Seu respeito caiu abaixo de 5.';
     END IF;
     RETURN NEW;
 END;
@@ -81,7 +93,7 @@ $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trigger_verificar_respeito ON Estagiario;
 
 CREATE TRIGGER trigger_verificar_respeito
-BEFORE UPDATE OF respeito ON Estagiario
+BEFORE UPDATE ON Estagiario
 FOR EACH ROW
 EXECUTE FUNCTION verificar_respeito_minimo();
 
@@ -102,3 +114,4 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
