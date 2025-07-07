@@ -18,10 +18,13 @@ def get_connection():
 def call_db_function(function_name, *args):
     result = None
     conn = get_connection()
+    if not conn:
+        return f"Erro: Falha na conexão com o banco de dados."
     try:
         with conn.cursor() as cur:
             cur.execute(f"SELECT {function_name}({', '.join(['%s'] * len(args))});", args)
-            result = cur.fetchone()[0]
+            if cur.description:
+                result = cur.fetchone()[0]
             conn.commit()
     except Exception as e:
         print(f"Erro ao executar a função '{function_name}': {e}")
@@ -30,13 +33,21 @@ def call_db_function(function_name, *args):
         if conn: conn.close()
     return result
 
+# MODIFICAÇÃO 1: Agora busca da tabela Personagem, filtrando por tipo 'PC'
 def get_all_characters():
     characters = []
     conn = get_connection()
     if not conn: return characters
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT id_personagem, nome FROM Estagiario ORDER BY id_personagem;")
+            # Junta Personagem e Estagiario para garantir que estamos pegando apenas personagens jogáveis criados.
+            cur.execute("""
+                SELECT p.id_personagem, p.nome 
+                FROM Personagem p
+                JOIN Estagiario e ON p.id_personagem = e.id_personagem
+                WHERE p.tipo = 'PC' 
+                ORDER BY p.id_personagem;
+            """)
             characters = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar personagens: {e}")
@@ -98,7 +109,8 @@ def get_npcs_in_room(sala_id):
                 SELECT p.id_personagem, p.nome, n.tipo
                 FROM NPC n
                 JOIN Personagem p ON n.id_personagem = p.id_personagem
-                WHERE n.andar_atual = (SELECT id_andar FROM Sala WHERE id_sala = %s);
+                JOIN Sala s ON n.andar_atual = s.id_andar
+                WHERE s.id_sala = %s;
                 """,
                 (sala_id,),
             )
@@ -111,10 +123,7 @@ def get_npcs_in_room(sala_id):
     return npcs
 
 def get_items_for_sale(item_type=None):
-    """Lista itens disponíveis na loja, opcionalmente filtrando por tipo.
-
-    Agora também retorna os bônus que o item concede (ataque, defesa ou vida).
-    """
+    """Lista itens disponíveis na loja, opcionalmente filtrando por tipo."""
     itens = []
     conn = get_connection()
     try:
@@ -166,7 +175,7 @@ def get_player_coins(personagem_id):
             conn.close()
     return coins
 
-
+# MODIFICAÇÃO 2: Agora busca o nome da tabela Personagem
 def get_player_stats(personagem_id):
     """Retorna status completo do jogador."""
     stats = None
@@ -175,9 +184,10 @@ def get_player_stats(personagem_id):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT nome, nivel, xp, respeito, coins, ataque, defesa, vida, status
-                FROM Estagiario
-                WHERE id_personagem = %s;
+                SELECT p.nome, e.nivel, e.xp, e.respeito, e.coins, e.ataque, e.defesa, e.vida, e.status
+                FROM Estagiario e
+                JOIN Personagem p ON e.id_personagem = p.id_personagem
+                WHERE e.id_personagem = %s;
                 """,
                 (personagem_id,),
             )
@@ -189,7 +199,279 @@ def get_player_stats(personagem_id):
             conn.close()
     return stats
 
-
 def buy_item(personagem_id, instancia_id, quantidade):
     """Executa a compra de um item da loja."""
     return call_db_function("comprar_item", personagem_id, instancia_id, quantidade)
+
+def use_elevator(personagem_id, andar_destino):
+    """Chama a função do banco de dados para usar o elevador."""
+    return call_db_function("usar_elevador", personagem_id, andar_destino)
+
+def get_all_floors():
+    """Retorna uma lista de todos os andares (numero, nome)."""
+    andares = []
+    conn = get_connection()
+    if not conn: return andares
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT numero, nome FROM Andar ORDER BY numero;")
+            andares = cur.fetchall()
+    except Exception as e:
+        print(f"Erro ao buscar andares: {e}")
+    finally:
+        if conn: conn.close()
+    return andares
+
+# =================================================================
+# == FUNÇÕES PARA O SISTEMA DE MISSÕES E INTERAÇÕES ==
+# =================================================================
+
+def get_dialogue_for_npc(npc_id):
+    """Busca o diálogo padrão de um NPC."""
+    dialogue = None
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT dialogo_padrao FROM npc WHERE id_personagem = %s;", (npc_id,))
+            result = cur.fetchone()
+            if result:
+                dialogue = result[0]
+    except Exception as e:
+        print(f"Erro ao buscar diálogo do NPC: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return dialogue
+
+def get_available_missions_from_npc(player_id, npc_id):
+    """Verifica se um NPC tem missões disponíveis para o jogador."""
+    missions = []
+    conn = get_connection()
+    query = """
+        SELECT m.id_missao, m.nome, m.dialogo_inicial
+        FROM Missao m
+        LEFT JOIN MissaoStatus ms ON m.id_missao = ms.id_missao AND ms.id_estagiario = %s
+        WHERE m.npc_origem = %s AND (ms.status IS NULL OR ms.status = 'Disponível');
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (player_id, npc_id))
+            missions = cur.fetchall()
+    except Exception as e:
+        print(f"Erro ao buscar missões do NPC: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return missions
+
+def accept_mission(player_id, mission_id):
+    """Registra que um jogador aceitou uma missão, mudando seu status para 'Em Andamento'."""
+    conn = get_connection()
+    if not conn: return False, "Falha na conexão com o banco."
+    
+    query = """
+        INSERT INTO MissaoStatus (id_missao, id_estagiario, status)
+        VALUES (%s, %s, 'Em Andamento')
+        ON CONFLICT (id_missao, id_estagiario)
+        DO UPDATE SET status = 'Em Andamento';
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (mission_id, player_id))
+            conn.commit()
+            return True, "Missão aceita! Acompanhe em seu Painel de Tarefas."
+    except Exception as e:
+        if conn: conn.rollback()
+        print(f"Erro ao aceitar missão: {e}")
+        return False, "Ocorreu um erro ao tentar aceitar a missão."
+    finally:
+        if conn: conn.close()
+
+def get_player_missions(player_id):
+    """Busca todas as missões (em andamento ou concluídas) de um jogador."""
+    missions = []
+    conn = get_connection()
+    query = """
+        SELECT m.nome, ms.status, m.descricao
+        FROM Missao m
+        JOIN MissaoStatus ms ON m.id_missao = ms.id_missao
+        WHERE ms.id_estagiario = %s
+        ORDER BY ms.status, m.nome;
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (player_id,))
+            missions = cur.fetchall()
+    except Exception as e:
+        print(f"Erro ao buscar missões do jogador: {e}")
+    finally:
+        if conn: conn.close()
+    return missions
+
+def get_player_missions_status(player_id):
+    """Retorna um dicionário simples com o status de todas as missões de um jogador."""
+    missions_status = {}
+    conn = get_connection()
+    query = "SELECT id_missao, status FROM MissaoStatus WHERE id_estagiario = %s;"
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (player_id,))
+            results = cur.fetchall()
+            for row in results:
+                missions_status[row[0]] = row[1]
+    except Exception as e:
+        print(f"Erro ao buscar status das missões do jogador: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return missions_status
+
+def get_interactable_mission_in_room(player_id, sala_id):
+    """Verifica se há uma missão de MANUTENÇÃO ativa na sala atual do jogador."""
+    mission = None
+    conn = get_connection()
+    if sala_id != 2: # A missão 'Check-up no Servidor' ocorre na sala com id=2 ('Data Center')
+        return None
+        
+    query = """
+        SELECT m.id_missao, m.nome, m.tipo
+        FROM Missao m
+        JOIN MissaoStatus ms ON m.id_missao = ms.id_missao
+        WHERE ms.id_estagiario = %s
+          AND ms.status = 'Em Andamento'
+          AND m.tipo = 'Manutenção'
+          AND m.nome = 'Check-up no Servidor';
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (player_id,))
+            mission = cur.fetchone()
+    except Exception as e:
+        print(f"Erro ao verificar missão interativa na sala: {e}")
+    finally:
+        if conn: conn.close()
+    return mission
+
+# ---- FUNÇÕES DE COMBATE ----
+def get_inimigos_na_sala(sala_id):
+    """Busca instâncias de inimigos que podem aparecer na sala atual do jogador."""
+    inimigos = []
+    conn = get_connection()
+    query = """
+        SELECT ii.id_instancia, i.nome, ii.vida, ii.dano, m.id_missao
+        FROM InstanciaInimigo ii
+        JOIN Inimigo i ON ii.id_inimigo = i.id_inimigo
+        JOIN MissaoCombate mc ON i.id_inimigo = mc.id_inimigo
+        JOIN Missao m ON mc.id_missao = m.id_missao
+        JOIN Estagiario e ON m.npc_origem = e.id_personagem -- Lógica simplificada de localização
+        WHERE e.sala_atual = %s AND m.id_missao IN (
+            SELECT ms.id_missao FROM MissaoStatus ms
+            WHERE ms.id_estagiario = e.id_personagem AND ms.status = 'Em Andamento'
+        );
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (sala_id,))
+            inimigos = cur.fetchall()
+    except Exception as e:
+        print(f"Erro ao buscar inimigos na sala: {e}")
+    finally:
+        if conn: conn.close()
+    return inimigos
+
+def get_missao_combate_ativa(player_id, mission_id):
+    """Busca o progresso de uma missão de combate (alvo vs atual)."""
+    progresso = None
+    conn = get_connection()
+    query = """
+        SELECT mc.quantidade_alvo, mc.quantidade_atual
+        FROM MissaoCombate mc
+        JOIN MissaoStatus ms ON mc.id_missao = ms.id_missao
+        WHERE ms.id_estagiario = %s AND ms.id_missao = %s AND ms.status = 'Em Andamento';
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (player_id, mission_id))
+            progresso = cur.fetchone()
+    except Exception as e:
+        print(f"Erro ao buscar progresso da missão de combate: {e}")
+    finally:
+        if conn: conn.close()
+    return progresso
+
+def atualizar_progresso_combate(mission_id):
+    """Incrementa o contador de inimigos derrotados para uma missão."""
+    conn = get_connection()
+    query = "UPDATE MissaoCombate SET quantidade_atual = quantidade_atual + 1 WHERE id_missao = %s;"
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (mission_id,))
+            conn.commit()
+    except Exception as e:
+        if conn: conn.rollback()
+        print(f"Erro ao atualizar progresso de combate: {e}")
+    finally:
+        if conn: conn.close()
+
+# ---- FUNÇÃO DE CONCLUSÃO DE MISSÃO ----
+def complete_mission(player_id, mission_id):
+    """Chama a função do banco de dados para concluir a missão e obter as recompensas."""
+    return call_db_function("concluir_missao", player_id, mission_id)
+    
+# Função de inventário atualizada para mostrar status (equipado/mochila)
+def get_player_inventory(personagem_id):
+    """Busca os itens no inventário e os itens equipados de um jogador."""
+    inventory = []
+    conn = get_connection()
+    if not conn: return inventory
+    query = """
+        SELECT
+            inst.id_instancia,
+            i.nome,
+            ii.quantidade,
+            i.descricao,
+            i.tipo,
+            'Na Mochila' as status
+        FROM Inventario inv
+        JOIN ItemInventario ii ON inv.id_inventario = ii.id_inventario
+        JOIN InstanciaItem inst ON ii.id_instancia = inst.id_instancia
+        JOIN Item i ON inst.id_item = i.id_item
+        WHERE inv.id_estagiario = %s
+
+        UNION ALL
+
+        SELECT
+            inst.id_instancia,
+            i.nome,
+            1 as quantidade, -- Itens equipados sempre têm quantidade 1
+            i.descricao,
+            i.tipo,
+            'Equipado (' || ee.slot || ')' as status
+        FROM EstagiarioEquipamento ee
+        JOIN InstanciaItem inst ON ee.id_instancia = inst.id_instancia
+        JOIN Item i ON inst.id_item = i.id_item
+        WHERE ee.id_estagiario = %s
+        ORDER BY tipo, nome;
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (personagem_id, personagem_id))
+            inventory = cur.fetchall()
+    except Exception as e:
+        print(f"Erro ao buscar inventário do jogador: {e}")
+    finally:
+        if conn: conn.close()
+    return inventory
+
+# funções para chamar a lógica do banco de dados
+def use_item(personagem_id, instancia_id):
+    """Chama a função para usar um item consumível ou power-up."""
+    return call_db_function("usar_item", personagem_id, instancia_id)
+
+def equip_item(personagem_id, instancia_id):
+    """Chama a função para equipar um item."""
+    return call_db_function("equipar_item", personagem_id, instancia_id)
+
+def unequip_item(personagem_id, instancia_id):
+    """Chama a função para desequipar um item."""
+    return call_db_function("desequipar_item", personagem_id, instancia_id)

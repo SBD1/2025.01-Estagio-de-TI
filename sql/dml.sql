@@ -61,76 +61,33 @@ INSERT INTO Sala (id_andar, nome, descricao) VALUES
 
 INSERT INTO ConexaoSala (id_sala_origem, id_sala_destino) VALUES
 -- Subsolo 2
-(1, 2), 
-(2, 1), 
-(1, 3), 
-(3, 1),
--- Subsolo 1 
-(4, 5), 
-(5, 4),
-(4, 6), 
-(6, 4), 
--- Térreo 
-(7, 8),
-(8, 7), 
-(7, 9),
-(9, 7),
+(1, 2), (2, 1), (1, 3), (3, 1),
+-- Subsolo 1
+(4, 5), (5, 4), (4, 6), (6, 4),
+-- Térreo
+(7, 8), (8, 7), (7, 9), (9, 7),
 -- Ligação da recepção com a cafeteria
-(7, 10),
-(10, 7),
+(7, 10), (10, 7),
 -- Andar 1
-(11, 12),
-(12, 11),
-(11, 13),
-(13, 11),
+(11, 12), (12, 11), (11, 13), (13, 11),
 -- Andar 2
-(13, 14),
-(14, 13),
-(13, 15), 
-(15, 13), 
--- Andar 3 
-(16, 17), 
-(17, 16), 
-(16, 18), 
-(18, 16), 
--- Andar 4 
-(19, 20),
-(20, 19), 
-(19, 21), 
-(21, 19), 
--- Andar 5 
-(22, 23),
-(23, 22), 
-(22, 24), 
-(24, 22), 
--- Andar 6 
-(25, 26),
-(26, 25), 
-(25, 27), 
-(27, 25), 
+(13, 14), (14, 13), (13, 15), (15, 13),
+-- Andar 3
+(16, 17), (17, 16), (16, 18), (18, 16),
+-- Andar 4
+(19, 20), (20, 19), (19, 21), (21, 19),
+-- Andar 5
+(22, 23), (23, 22), (22, 24), (24, 22),
+-- Andar 6
+(25, 26), (26, 25), (25, 27), (27, 25),
 -- Andar 7
-(28, 29), 
-(29, 28), 
-(28, 30), 
-(30, 28), 
+(28, 29), (29, 28), (28, 30), (30, 28),
 -- Andar 8
-(31, 32), 
-(32, 31),
-(31, 33), 
-(33, 31), 
+(31, 32), (32, 31), (31, 33), (33, 31),
 -- Andar 9
-(34, 35), 
-(35, 34), 
-(34, 36), 
-(36, 34), 
--- Andar 10 
-(37, 38), 
-(38, 37), 
-(37, 39), 
-(39, 37); 
-
-
-
+(34, 35), (35, 34), (34, 36), (36, 34),
+-- Andar 10
+(37, 38), (38, 37), (37, 39), (39, 37);
 
 INSERT INTO Personagem (nome, tipo, descricao) VALUES
 ('Severino', 'NPC', 'Responsável pelo Data Center'),
@@ -142,7 +99,9 @@ INSERT INTO Personagem (nome, tipo, descricao) VALUES
 ('Cristiano', 'NPC', 'Almoxarife dedicado'),
 ('Manoel', 'NPC', 'Responsável pelo Data Center'),
 ('Ana', 'NPC', 'Almoxarife dedicado'),
-('Breno', 'NPC', 'Barista simpático');
+('Breno', 'NPC', 'Barista simpático'),
+('Carlos', 'NPC', 'Um dev de backend que vive à base de café e código.'),
+('Sargento Silva', 'NPC', 'Chefe de segurança da informação, não tolera falhas.');
 
 -- PowerUps
 INSERT INTO Item (nome, descricao, tipo, preco_base) VALUES
@@ -151,9 +110,9 @@ INSERT INTO Item (nome, descricao, tipo, preco_base) VALUES
 ('Fone Noise Cancelling', 'Aumenta foco temporariamente', 'PowerUp', 150);
 
 INSERT INTO PowerUp (id_item, bonus_ataque, duracao) VALUES
-(1, 20, 300),  
-(2, 15, 180),  
-(3, 10, 600);  
+(1, 20, 300),
+(2, 15, 180),
+(3, 10, 600);
 
 -- Consumíveis
 INSERT INTO Item (nome, descricao, tipo, preco_base) VALUES
@@ -164,9 +123,9 @@ INSERT INTO Item (nome, descricao, tipo, preco_base) VALUES
 
 INSERT INTO Consumivel (id_item, recuperacao_vida) VALUES
 (4, 10),
-(5, 20),  
-(6, 25),  
-(7, 50);  
+(5, 20),
+(6, 25),
+(7, 50);
 
 -- Equipamentos
 INSERT INTO Item (nome, descricao, tipo, preco_base) VALUES
@@ -175,9 +134,9 @@ INSERT INTO Item (nome, descricao, tipo, preco_base) VALUES
 ('Cadeira Ergonômica', 'Reduz dano recebido', 'Equipamento', 500);
 
 INSERT INTO Equipamento (id_item, slot, bonus_ataque, bonus_defesa) VALUES
-    (8, 'Maos', 15, 0),
-    (9, 'Maos', 20, 0),
-    (10, 'Corpo', 0, 30);
+(8, 'Maos', 15, 0),
+(9, 'Maos', 20, 0),
+(10, 'Corpo', 0, 30);
 
 INSERT INTO InstanciaItem (id_item, quantidade, local_atual) VALUES
 (5, 10, 'Loja'),
@@ -189,10 +148,8 @@ INSERT INTO InstanciaItem (id_item, quantidade, local_atual) VALUES
 (10, 1, 'Loja'),
 (4, 1, 'Chao'),
 (2, 1, 'Chao'),
-(8, 1, 'Inventario'),  
-(5, 2, 'Inventario');  
-
-
+(8, 1, 'Inventario'),
+(5, 2, 'Inventario');
 
 INSERT INTO NPC (id_personagem, tipo, andar_atual, dialogo_padrao) VALUES
 (1, 'colega', 11, 'Os servidores precisam estar sempre funcionando...'),
@@ -201,26 +158,30 @@ INSERT INTO NPC (id_personagem, tipo, andar_atual, dialogo_padrao) VALUES
 (4, 'colega', 11, 'Os servidores precisam estar sempre funcionando...'),
 (5, 'almoxarife', 12, 'Preciso organizar esse estoque...'),
 (6, 'colega', 13, 'Bem-vindo! Como posso ajudar?'),
-(7, 'colega', 11, 'Os servidores precisam estar sempre funcionando...'),
+(7, 'colega', 7, 'Os servidores precisam estar sempre funcionando...'),
 (8, 'almoxarife', 12, 'Preciso organizar esse estoque...'),
-(9, 'colega', 13, 'Bem-vindo! Como posso ajudar?'),
-(10, 'barista', 13, 'Bom dia! Que tal um cafezinho?');
+(9, 'colega', 7, 'Bem-vindo! Como posso ajudar?'),
+(10, 'barista', 13, 'Bom dia! Que tal um cafezinho?'),
+(11, 'colega', 8, 'Só mais um deploy e eu... ah, oi.'),
+(12, 'chefe', 6, 'A segurança da informação é a prioridade máxima.');
 
 INSERT INTO Inimigo (id_inimigo, nome, ataque) VALUES
 (1, 'Bug', 'Ataque bizonho'),
 (2, 'Malware', 'dogsniffing'),
-(3, 'Hacker', 'Arquivo .bat');
+(3, 'Hacker', 'Arquivo .bat'),
+(4, 'Pacote Desgovernado', 'Inundação de Rede');
 
 INSERT INTO InstanciaInimigo (id_inimigo, vida, dano) VALUES
 (1, 100, 10),
 (1, 100, 10),
 (2, 500, 30),
 (2, 500, 30),
-(3, 900, 100);
+(3, 900, 100),
+(4, 80, 20);
 
 INSERT INTO Missao (nome, descricao, dialogo_inicial, tipo, xp_recompensa, moedas_recompensa, npc_origem) VALUES
 -- Missões de Combate
-('Vírus no Sistema', 
+('Vírus no Sistema',
  'Elimine os vírus que estão infectando nossos servidores.',
  'Socorro! Temos vários vírus nos servidores!',
  'Combate', 100, 50, 1),
@@ -252,16 +213,47 @@ INSERT INTO Missao (nome, descricao, dialogo_inicial, tipo, xp_recompensa, moeda
  'Pode levar estas peças pro pessoal?',
  'Entrega', 60, 40, 2);
 
--- Depois especifica os detalhes de cada tipo de missão
+-- ===============================================
+-- NOVAS MISSÕES ADICIONADAS
+-- ===============================================
+
+INSERT INTO Missao (nome, descricao, dialogo_inicial, tipo, xp_recompensa, moedas_recompensa, npc_origem) VALUES
+-- Missão de Manutenção (ID: 7)
+('Check-up no Servidor',
+ 'Verifique e reinicie o servidor que está superaquecendo no Data Center.',
+ 'O Rack 03 está com a temperatura elevada! Por favor, vá até lá e reinicie o servidor para evitar um problema maior.',
+ 'Manutenção', 75, 40, 1),
+
+-- Missão de Conversa (ID: 8)
+('O Ladrão de Pão de Queijo',
+ 'Descubra quem está roubando os pães de queijo da cafeteria.',
+ 'Não aguento mais! Alguém está pegando pães de queijo sem pagar. Me ajude a descobrir quem é!',
+ 'Conversa', 120, 50, 10),
+
+-- Missão de Combate (ID: 9)
+('Ataque na Rede!',
+ 'Elimine os pacotes maliciosos que invadiram a rede após uma falha no firewall.',
+ 'Invasores! Pacotes não identificados estão por toda parte. Contenha a ameaça!',
+ 'Combate', 200, 100, 12);
+
+
+-- Detalhes das missões originais
 INSERT INTO MissaoCombate (id_missao, id_inimigo, quantidade_alvo) VALUES
-(1, 2, 1), -- Matar 3 vírus
+(1, 2, 1), -- Matar 1 Malware
 (2, 1, 5); -- Matar 5 bugs
 
 INSERT INTO MissaoConversa (id_missao, id_npc_alvo) VALUES
-(3, 3), -- Falar com a recepcionista
-(4, 9); -- Falar com o dev frontend
+(3, 3), -- Falar com a recepcionista Maria
+(4, 9); -- Falar com o dev Ana
 
 INSERT INTO MissaoEntrega (id_missao, id_item, quantidade, id_npc_destino) VALUES
-(5, 1, 1, 5), -- Entregar 1 café para o dev
-(6, 2, 3, 4);  -- Entregar 3 peças para o suporte
+(5, 5, 1, 9), -- Entregar 1 café para o dev Ana
+(6, 8, 3, 4);  -- Entregar 3 Mouses para o suporte Cláudio
 
+-- Detalhe da nova Missão de Conversa (o alvo é o NPC Carlos, ID 11)
+INSERT INTO MissaoConversa (id_missao, id_npc_alvo) VALUES
+(8, 11);
+
+-- Detalhe da nova Missão de Combate (alvo: 3x Inimigo "Pacote Desgovernado", ID 4)
+INSERT INTO MissaoCombate (id_missao, id_inimigo, quantidade_alvo) VALUES
+(9, 4, 3);

@@ -1,6 +1,9 @@
 import os
 import time
 import sys
+
+# >> IMPORTS ATUALIZADOS <<
+
 from database import (
     call_db_function,
     get_all_characters,
@@ -11,7 +14,15 @@ from database import (
     get_player_coins,
     get_player_stats,
     buy_item,
+    use_elevator,
+    get_all_floors,
+    get_interactable_mission_in_room,
+    get_inimigos_na_sala,
+    get_player_inventory # Mantém-se, pois é usado em interacoes.py
 )
+# MODIFICAÇÃO 1: Apenas importamos o módulo, as funções são chamadas com interacoes.nome_da_funcao
+import interacoes
+
 
 def clear_screen():
     """Limpa a tela do terminal."""
@@ -28,13 +39,9 @@ def criar_personagem():
         time.sleep(2)
         return
 
-    # Chama a função SQL para criar o personagem
     mensagem = call_db_function('criar_personagem', nome)
     print(f"\n{mensagem}")
     time.sleep(3)
-
-###############################
-
 
 def exibir_introducao(nome_personagem):
     """Exibe o texto de introdução do jogo com efeito de digitação."""
@@ -65,24 +72,16 @@ def exibir_introducao(nome_personagem):
 
     """
     
-    # Loop que "digita" o texto
     for caractere in texto_intro:
         print(caractere, end='', flush=True)
-        # sys.stdout.flush() # Alternativa para flush=True, garante que o caractere apareça
-        
-        # Adiciona pausas diferentes para um efeito mais natural
         if caractere in ['.', '!', '?']:
-            time.sleep(0.5)  # Pausa longa no final de frases
+            time.sleep(0.5)
         elif caractere in [',', ';', ':']:
-            time.sleep(0.25) # Pausa média em pontuações
+            time.sleep(0.25)
         else:
-            time.sleep(0.03) # Pausa curta entre caracteres normais
+            time.sleep(0.03)
 
     input("\nPressione Enter para começar sua jornada...")
-
-###############################
-
-
 
 def iniciar_jogo():
     """Lida com a seleção de personagem e o início do loop do jogo."""
@@ -103,175 +102,78 @@ def iniciar_jogo():
 
     try:
         escolha = int(input("\nDigite o ID do personagem: "))
-        # Verifica se a escolha é um ID válido
         personagem_selecionado = next((p for p in personagens if p[0] == escolha), None)
 
         if not personagem_selecionado:
             raise ValueError
-
+        
+        exibir_introducao(personagem_selecionado[1])
         game_loop(personagem_selecionado[0], personagem_selecionado[1])
 
     except (ValueError, IndexError):
         print("\nOpção inválida. Retornando ao menu principal.")
         time.sleep(2)
 
-def game_loop(personagem_id, personagem_nome):
-    """O loop principal do jogo, com menu de opções numérico."""
-    clear_screen()
-    print(f"Iniciando o jogo com {personagem_nome}...")
-    print("(Pressione 'p' a qualquer momento para ver seu status)" )
-    time.sleep(2)
-
-    while True:
-        clear_screen()
-
-        # 1. Pega os detalhes estruturados do local atual
-        location_details = get_location_details(personagem_id)
-        sala_info = get_player_room_info(personagem_id)
-
-        if not location_details:
-            print("Erro ao carregar o local. Voltando ao menu.")
-            time.sleep(3)
-            break
-
-        nome_sala, descricao_sala, saidas_disponiveis = location_details
-        sala_id = sala_info[0] if sala_info else None
-
-        npcs_na_sala = get_npcs_in_room(sala_id) if sala_id else []
-        tem_vendedor = any(tipo in ('almoxarife', 'barista') for _, _, tipo in npcs_na_sala)
-
-        loja_tipo = None
-        if sala_info:
-            nome_atual = sala_info[1]
-            if nome_atual == 'Cafeteria':
-                loja_tipo = 'Consumivel'
-            elif nome_atual == 'Depósito':
-                loja_tipo = 'Equipamento'
-
-        loja_disponivel = tem_vendedor and loja_tipo is not None
-
-        # 2. Exibe as informações do local
-        print(f"--- {personagem_nome} ---")
-        print(f"Você está no: {nome_sala}")
-        print(descricao_sala)
-        print("\n--------------------")
-        print("O que você faz?\n")
-        print("(Pressione 'p' para ver seu status)")
-
-        # Garante que 'saidas_disponiveis' não seja None. Se for, é uma lista vazia.
-        saidas_disponiveis = saidas_disponiveis or []
-        
-        # 3. Exibe o menu de opções numerado
-        for i, saida in enumerate(saidas_disponiveis, start=1):
-            saida_fmt = saida
-            s_lower = saida.lower()
-            if s_lower.startswith("subir") or s_lower.startswith("descer") or "cafe" in s_lower:
-                saida_fmt = f"({saida})"
-            print(f"  [{i}] {saida_fmt}")
-
-        next_idx = len(saidas_disponiveis) + 1
-        if loja_disponivel:
-            print(f"  [{next_idx}] Comprar Itens")
-            next_idx += 1
-
-        print("  [P] Ver status do personagem")
-        print(f"  [{next_idx}] Voltar ao menu principal")
-        print("\n--------------------")
-
-        # 4. Pega e processa a escolha do jogador
-        try:
-            escolha_str = input("Sua escolha: ").strip()
-            if not escolha_str:
-                continue
-            if escolha_str.lower() == 'p':
-                mostrar_status(personagem_id)
-                continue
-
-            escolha_num = int(escolha_str)
-            
-            loja_idx = len(saidas_disponiveis) + 1 if loja_disponivel else None
-            sair_idx = (len(saidas_disponiveis) + 2 if loja_disponivel else len(saidas_disponiveis) + 1)
-
-            # Opção de sair do jogo
-            if escolha_num == sair_idx:
-                print("\nVoltando ao menu principal...")
-                time.sleep(2)
-                break
-
-            # Opção de movimento válida
-            elif 1 <= escolha_num <= len(saidas_disponiveis):
-                # Pega o nome da saída escolhida da lista
-                direcao_escolhida = saidas_disponiveis[escolha_num - 1]
-                
-                # Chama a função de movimento original
-                print(f"\nTentando: {direcao_escolhida}...")
-                call_db_function('mover_personagem', personagem_id, direcao_escolhida)
-                time.sleep(1) # Pequena pausa para o jogador ler
-
-            elif loja_disponivel and escolha_num == loja_idx:
-                abrir_loja(personagem_id, loja_tipo)
-            else:
-                print("\nOpção inválida. Tente novamente.")
-                time.sleep(2)
-        except ValueError:
-            print("\nPor favor, digite um número. Tente novamente.")
-            time.sleep(2)
-
-
-def abrir_loja(personagem_id, item_type):
-    """Interface simples de compra de itens."""
+def abrir_loja(personagem_id, loja_info):
+    """
+    Interface de compra de itens.
+    'loja_info' é uma tupla (nome_da_loja, tipo_de_item).
+    """
+    nome_loja, item_type = loja_info
+    
     while True:
         clear_screen()
         itens = get_items_for_sale(item_type)
         coins = get_player_coins(personagem_id)
-        nome_loja = 'Loja'
-        if item_type == 'Consumivel':
-            nome_loja = 'Cafeteria'
-        elif item_type == 'Equipamento':
-            nome_loja = 'Depósito'
-        print(f"=== {nome_loja} ===  (Coins: {coins} C$)\n")
+
+        print(f"=== BEM-VINDO À {nome_loja.upper()} ===")
+        print(f"Você tem: {coins} C$\n")
+
         if not itens:
-            print("A loja está vazia.")
-            input("Pressione Enter para voltar.")
+            print("Não há nada para vender aqui no momento.")
+            input("\nPressione Enter para voltar.")
             return
 
+        print("Itens disponíveis:\n")
         for i, (inst_id, nome, desc, preco, qtd, bonus_atk, bonus_def, bonus_hp) in enumerate(itens, start=1):
-            print(f"[{i}] {nome} - {preco} C$ (x{qtd})")
+            print(f" [{i}] {nome} - {preco} C$ (Disponível: {qtd})")
+            
             atributos = []
-            if bonus_hp:
-                atributos.append(f"Vida +{bonus_hp}")
-            if bonus_atk:
-                atributos.append(f"Ataque +{bonus_atk}")
-            if bonus_def:
-                atributos.append(f"Defesa +{bonus_def}")
+            if bonus_hp > 0: atributos.append(f"Vida +{bonus_hp}")
+            if bonus_atk > 0: atributos.append(f"Ataque +{bonus_atk}")
+            if bonus_def > 0: atributos.append(f"Defesa +{bonus_def}")
             attr_text = f" [{', '.join(atributos)}]" if atributos else ""
-            print(f"    {desc}{attr_text}")
-        print("[0] Voltar")
+            
+            print(f"     ↳ {desc}{attr_text}\n")
+            
+        print(" [0] Voltar")
+        print("\n--------------------")
 
-        escolha = input("Escolha um item: ").strip()
-        if escolha == "0":
-            return
         try:
-            idx = int(escolha)
+            escolha_str = input("O que deseja comprar? ").strip()
+            if not escolha_str or escolha_str == "0":
+                return
+            
+            idx = int(escolha_str)
             if 1 <= idx <= len(itens):
-                inst_id = itens[idx - 1][0]
-                max_q = itens[idx - 1][4]
-                q = input(f"Quantidade (1-{max_q}): ").strip()
-                q = int(q) if q else 1
-                if q < 1 or q > max_q:
-                    print("Quantidade inválida.")
+                inst_id, _, _, _, max_q, _, _, _ = itens[idx - 1]
+                
+                qnt_str = input(f"Quantidade (1-{max_q}, Enter para 1): ").strip()
+                quantidade = int(qnt_str) if qnt_str.isdigit() and int(qnt_str) > 0 else 1
+
+                if 1 <= quantidade <= max_q:
+                    mensagem = buy_item(personagem_id, inst_id, quantidade)
+                    print(f"\n{mensagem}")
                     time.sleep(2)
-                    continue
-                msg = buy_item(personagem_id, inst_id, q)
-                print(msg)
-                time.sleep(2)
+                else:
+                    print("\nQuantidade inválida.")
+                    time.sleep(2)
             else:
-                print("Opção inválida.")
+                print("\nOpção inválida.")
                 time.sleep(2)
         except ValueError:
-            print("Digite números válidos.")
+            print("\nPor favor, digite um número válido.")
             time.sleep(2)
-
 
 def mostrar_status(personagem_id):
     """Exibe os atributos atuais do personagem."""
@@ -295,13 +197,193 @@ def mostrar_status(personagem_id):
     print("\n===========================")
     input("Pressione Enter para continuar...")
 
+def menu_elevador(personagem_id):
+    """Exibe o menu de seleção de andares para o elevador."""
+    clear_screen()
+    print("--- PAINEL DO ELEVADOR ---\n")
+    andares = get_all_floors()
+    if not andares:
+        print("Erro ao carregar os andares.")
+        time.sleep(2)
+        return
+
+    for i, (numero, nome) in enumerate(andares, start=1):
+        nome_andar = nome.split(": ", 1)[-1]
+        print(f"  [{i}] {numero}º Andar - {nome_andar}")
+
+    print("\n  [0] Sair do elevador")
+    print("\n--------------------")
+
+    try:
+        escolha = int(input("Digite o número do andar de destino: ").strip())
+        if escolha == 0:
+            return
+        if 1 <= escolha <= len(andares):
+            andar_destino = andares[escolha - 1][0]
+            mensagem = use_elevator(personagem_id, andar_destino)
+            print(f"\n{mensagem}")
+            time.sleep(2)
+        else:
+            print("\nAndar inválido.")
+            time.sleep(2)
+    except (ValueError):
+        print("\nPor favor, digite um número válido.")
+        time.sleep(2)
+
+def game_loop(personagem_id, personagem_nome):
+    """O loop principal do jogo, com menu de opções dinâmico."""
+    while True:
+        clear_screen()
+
+        # Busca todos os dados no início do loop para manter a tela atualizada
+        location_details = get_location_details(personagem_id)
+        sala_info = get_player_room_info(personagem_id)
+        stats = get_player_stats(personagem_id)
+
+        if not location_details or not sala_info or not stats:
+            print("Erro ao carregar os dados do personagem ou local. Voltando ao menu.")
+            time.sleep(3)
+            break
+        
+        # Desempacota os status para fácil acesso
+        _, _, _, _, _, ataque, defesa, vida, _ = stats
+
+        nome_sala, descricao_sala, saidas_disponiveis = location_details
+        sala_id, nome_sala_atual, _ = sala_info
+        
+        saidas_disponiveis = saidas_disponiveis or []
+        npcs_na_sala = get_npcs_in_room(sala_id)
+        interactable_mission = get_interactable_mission_in_room(personagem_id, sala_id)
+        inimigos_na_sala = get_inimigos_na_sala(sala_id)
+
+        loja_info = None
+        if npcs_na_sala:
+            tem_barista = any(npc[2] == 'barista' for npc in npcs_na_sala)
+            tem_almoxarife = any(npc[2] == 'almoxarife' for npc in npcs_na_sala)
+            
+            if nome_sala_atual == 'Cafeteria' and tem_barista:
+                loja_info = ('Cafeteria', 'Consumivel')
+            elif nome_sala_atual == 'Depósito' and tem_almoxarife:
+                loja_info = ('Almoxarifado', 'Equipamento')
+
+        # --- Interface do Jogo Atualizada ---
+        print(f"--- {personagem_nome} ---")
+        # MODIFICAÇÃO: Exibe os status principais do jogador em todas as telas
+        print(f"Vida: {vida}/100 | Ataque: {ataque} | Defesa: {defesa}")
+        print(f"Local: {nome_sala.strip()}")
+        print(f"\n{descricao_sala}")
+        
+        if npcs_na_sala:
+            print("\nVocê vê por aqui:")
+            for _, nome_npc, tipo_npc in npcs_na_sala:
+                print(f"- {nome_npc} ({tipo_npc})")
+        
+        if inimigos_na_sala:
+            print("\n\033[91mPERIGO! Há inimigos nesta sala!\033[0m")
+
+        print("\n--------------------")
+        print("O que você faz?\n")
+
+        opcoes_menu = {i + 1: saida for i, saida in enumerate(saidas_disponiveis)}
+        next_idx = len(opcoes_menu) + 1
+
+        loja_idx, combat_idx, talk_idx, interact_idx, tasks_idx, inventory_idx = -1, -1, -1, -1, -1, -1
+
+        if loja_info:
+            opcoes_menu[next_idx] = f"Comprar na {loja_info[0]}"
+            loja_idx = next_idx
+            next_idx += 1
+        
+        if inimigos_na_sala:
+            opcoes_menu[next_idx] = "Entrar em Combate"
+            combat_idx = next_idx
+            next_idx += 1
+
+        if npcs_na_sala:
+            opcoes_menu[next_idx] = "Falar com alguém"
+            talk_idx = next_idx
+            next_idx += 1
+
+        if interactable_mission:
+            opcoes_menu[next_idx] = "Interagir com o ambiente"
+            interact_idx = next_idx
+            next_idx += 1
+            
+        opcoes_menu[next_idx] = "Ver Tarefas (Missões)"
+        tasks_idx = next_idx
+        next_idx += 1
+        
+        opcoes_menu[next_idx] = "Gerenciar Inventário"
+        inventory_idx = next_idx
+        
+        for idx, desc in sorted(opcoes_menu.items()):
+            print(f"  [{idx}] {desc}")
+        print("\n  [P] Ver status do personagem")
+        print("  [0] Voltar ao menu principal")
+        print("\n--------------------")
+
+        try:
+            escolha_str = input("Sua escolha: ").strip().lower()
+            if not escolha_str:
+                continue
+            
+            if escolha_str == 'p':
+                mostrar_status(personagem_id)
+                continue
+            
+            if escolha_str == 'i': # Atalho para inventário
+                clear_screen()
+                interacoes.gerenciar_inventario(personagem_id)
+                continue
+
+            escolha_num = int(escolha_str)
+
+            if escolha_num == 0:
+                print("\nVoltando ao menu principal...")
+                time.sleep(2)
+                break
+
+            if escolha_num in opcoes_menu:
+                opcao_escolhida = opcoes_menu[escolha_num]
+                
+                if opcao_escolhida in saidas_disponiveis:
+                    if "Elevador" in opcao_escolhida:
+                        menu_elevador(personagem_id)
+                    else:
+                        call_db_function('mover_personagem', personagem_id, opcao_escolhida)
+                    time.sleep(1)
+                elif escolha_num == loja_idx:
+                    abrir_loja(personagem_id, loja_info)
+                elif escolha_num == combat_idx:
+                    interacoes.iniciar_combate(personagem_id, sala_id)
+                elif escolha_num == talk_idx:
+                    interacoes.conversar_com_npc(personagem_id, sala_id)
+                elif escolha_num == interact_idx:
+                    interacoes.interagir_com_ambiente(personagem_id, interactable_mission)
+                elif escolha_num == tasks_idx:
+                    clear_screen()
+                    interacoes.exibir_missoes_e_demandas(personagem_id)
+                elif escolha_num == inventory_idx:
+                    clear_screen()
+                    interacoes.gerenciar_inventario(personagem_id)
+            else:
+                print("\nOpção inválida. Tente novamente.")
+                time.sleep(2)
+
+        except ValueError:
+            print("\nPor favor, digite um número válido.")
+            time.sleep(2)
+        except Exception as e:
+            print(f"Ocorreu um erro inesperado: {e}")
+            time.sleep(3)
+
 
 def main_menu():
     """Exibe o menu principal e gerencia a navegação."""
     while True:
         clear_screen()
         print("========================================")
-        print("      BEM-VINDO AO JOGO DE TERMINAL     ")
+        print("      BEM-VINDO À SAGA DO ESTAGIÁRIO    ")
         print("========================================")
         print("\nEscolha uma opção:")
         print("  [1] Criar Novo Personagem")
@@ -323,7 +405,5 @@ def main_menu():
             time.sleep(2)
 
 if __name__ == "__main__":
-    # Garante que o Docker está rodando antes de começar
-    conn_test = get_all_characters()
-    if conn_test is not None:
+    if get_all_characters() is not None:
         main_menu()
