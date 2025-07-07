@@ -1,7 +1,9 @@
 import os
 import time
 import sys
+
 # >> IMPORTS ATUALIZADOS <<
+
 from database import (
     call_db_function,
     get_all_characters,
