@@ -75,7 +75,8 @@ def abrir_inventario(personagem_id):
                 print("  [2] Usar")
                 print("  [3] Dropar")
             else:  # Arma ou outro
-                print("  [2] Dropar")
+                print("  [2] Ler")
+                print("  [3] Dropar")
             print("  [0] Voltar")
 
             acao = input("Escolha uma ação: ").strip()
@@ -104,10 +105,27 @@ def abrir_inventario(personagem_id):
                 elif tipo == 'PowerUp':
                     usar_powerup(personagem_id, id_instancia, bonus, nome)
                     break
-                else:  # Arma ou outros
-                    dropar_item(id_instancia, nome)
+                elif tipo == 'Arma':
+                    conn = get_connection()
+                    with conn.cursor() as cur:
+                        # Verifica se já foi lido
+                        cur.execute("""
+                            SELECT lido FROM InstanciaItem WHERE id_instancia = %s
+                        """, (id_instancia,))
+                        lido = cur.fetchone()[0]
+                        if lido:
+                            print(f"\nVocê já leu o livro \"{nome}\".")
+                        else:
+                            # Marca como lido
+                            cur.execute("""
+                                UPDATE InstanciaItem SET lido = TRUE WHERE id_instancia = %s
+                            """, (id_instancia,))
+                            conn.commit()
+                            print(f"\nVocê leu o livro \"{nome}\" com atenção...")
+                            # Aqui o trigger do banco insere os ataques automaticamente
+                    conn.close()
                     break
-            elif acao == '3' and tipo in ('Consumivel', 'PowerUp'):
+            elif acao == '3' and tipo in ('Consumivel', 'PowerUp', 'Arma'):
                 dropar_item(id_instancia, nome)
                 break
             else:

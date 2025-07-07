@@ -44,3 +44,4 @@ CREATE TRIGGER trg_atualizar_localizacao_item
 AFTER INSERT OR UPDATE ON InstanciaItem
 FOR EACH ROW
 EXECUTE FUNCTION atualizar_localizacao_item();
+

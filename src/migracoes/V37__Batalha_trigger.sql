@@ -32,3 +32,5 @@ AFTER UPDATE ON Batalha
 FOR EACH ROW
 WHEN (OLD.resultado IS NULL AND NEW.resultado IS NOT NULL)
 EXECUTE FUNCTION deletar_instancia_estagiario_batalha();
+
+

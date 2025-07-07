@@ -13,8 +13,10 @@ INSERT INTO Item (nome, descricao, tipo, preco_base) VALUES
 
 
 -- Arma
-INSERT INTO Item (nome, descricao, tipo, preco_base) VALUES
-('Mouse Gamer', 'Aumenta precisão permanentemente', 'Arma', 200),
-('Teclado Mecânico', 'Aumenta velocidade de digitação', 'Arma', 300),
-('Cadeira Ergonômica', 'Reduz dano recebido', 'Arma', 500),
-('Livro básico de sql', 'ótimo contra bugs', 'Arma', 0);
+INSERT INTO Item (nome, descricao, tipo, preco_base, nivel_minimo) VALUES
+('Livro básico de sql', 'ótimo contra bugs', 'Arma', 0, 0),
+('Livro Avançado de sql', 'Destruidor de bugs', 'Arma', 0, 0),
+('Guia Definitivo de Depuração', 'Contém estratégias versáteis para todo tipo de ameaça.', 'Arma', 20, 3),
+('Manual de Defesa Digital', 'Estratégias segmentadas para combater ameaças específicas.', 'Arma', 25, 4),
+('Livro do senai', 'O ápice do conhecimento técnico em segurança digital.', 'Arma', 30, 5);
+

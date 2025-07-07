@@ -8,13 +8,13 @@ CREATE TABLE Item (
 
     dano INT,        -- para Arma
     recuperacao_vida INT,        -- para Consumivel
-    bonus_ataque INT            -- para PowerUp
-    
+    bonus_ataque INT,         -- para PowerUp
+    nivel_minimo INT
     
 );
 
 
--- Tabela para instâncias de itens (drops, itens em inventário, etc)
+-- tabela para instâncias de itens (drops, itens em inventário, etc)
 CREATE TABLE InstanciaItem (
     id_instancia SERIAL PRIMARY KEY,
     id_item INT REFERENCES Item(id_item),
@@ -22,7 +22,7 @@ CREATE TABLE InstanciaItem (
     id_sala INT,
     id_estagiario INT,
     quantidade INT DEFAULT 1,
-    local_atual VARCHAR(20) CHECK (local_atual IN ('Inventario', 'Chao', 'Loja'))
-
+    local_atual VARCHAR(20) CHECK (local_atual IN ('Inventario', 'Chao', 'Loja')),
+    lido BOOLEAN --so para livros
 );
 

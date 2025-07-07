@@ -26,6 +26,11 @@ BEGIN
         END IF;
     END IF;
 
+    -- Regra adicional: somente armas podem ser lidas
+    IF NEW.lido IS TRUE AND NEW.tipo IS DISTINCT FROM 'Arma' THEN
+        RAISE EXCEPTION 'Apenas itens do tipo "Arma" podem ter o campo "lido" como TRUE.';
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

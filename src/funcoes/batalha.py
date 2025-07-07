@@ -187,50 +187,51 @@ def batalha_interface(id_pc, personagem_id):
         if escolha == "1":
             ataques = get_ataques_personagem(personagem_id)
             if not ataques:
-                print("Você não tem ataques disponíveis!")
+                print("Você nem leu o livro de SQL básico, você acha mesmo que você consegue fazer algo?!")
                 input("Pressione Enter para continuar...")
-                continue
 
-            print("\nSeus ataques:")
-            for idx, (id_ataque, nome, dano, chance) in enumerate(ataques, 1):
-                print(f"  [{idx}] {nome} (Dano: {dano}, Chance: {chance}%)")
-            print("  [0] Voltar")
+            if ataques:
+                print("\nSeus ataques:")
+                for idx, (id_ataque, nome, dano, chance) in enumerate(ataques, 1):
+                    print(f"  [{idx}] {nome} (Dano: {dano}, Chance: {chance}%)")
+                print("  [0] Voltar")
 
-            escolha_ataque = input("Escolha seu ataque: ").strip()
-            if escolha_ataque == "0":
-                continue
-            if not escolha_ataque.isdigit() or not (1 <= int(escolha_ataque) <= len(ataques)):
-                print("Opção inválida.")
-                input("Pressione Enter para continuar...")
-                continue
+                escolha_ataque = input("Escolha seu ataque: ").strip()
+                if escolha_ataque == "0":
+                    continue
+                if not escolha_ataque.isdigit() or not (1 <= int(escolha_ataque) <= len(ataques)):
+                    print("Opção inválida.")
+                    input("Pressione Enter para continuar...")
+                    continue
 
-            ataque_escolhido = ataques[int(escolha_ataque) - 1]
-            id_ataque = ataque_escolhido[0]
-            print("\nEscolha o inimigo para atacar:")
-            for idx, (id_instancia, nome, vida) in enumerate(inimigos, 1):
-                print(f"  [{idx}] {nome} (HP: {vida})")
+                ataque_escolhido = ataques[int(escolha_ataque) - 1]
+                id_ataque = ataque_escolhido[0]
+                print("\nEscolha o inimigo para atacar:")
+                for idx, (id_instancia, nome, vida) in enumerate(inimigos, 1):
+                    print(f"  [{idx}] {nome} (HP: {vida})")
 
-            escolha_alvo = input("Digite o número do inimigo: ").strip()
-            if not escolha_alvo.isdigit() or not (1 <= int(escolha_alvo) <= len(inimigos)):
-                print("Alvo inválido.")
-                input("Pressione Enter para continuar...")
-                continue
+                escolha_alvo = input("Digite o número do inimigo: ").strip()
+                if not escolha_alvo.isdigit() or not (1 <= int(escolha_alvo) <= len(inimigos)):
+                    print("Alvo inválido.")
+                    input("Pressione Enter para continuar...")
+                    continue
 
-            id_inimigo_instancia = inimigos[int(escolha_alvo) - 1][0]
+                id_inimigo_instancia = inimigos[int(escolha_alvo) - 1][0]
 
-            #Testar acerto
-            if random.randint(1, 100) <= ataque_escolhido[3]:
-                atacar_inimigo(id_ataque, id_inimigo_instancia)
-                print("Você acertou o ataque!")
-            else:
-                print("Você errou o ataque!")
+                #Testar acerto
+                if random.randint(1, 100) <= ataque_escolhido[3]:
+                    atacar_inimigo(id_ataque, id_inimigo_instancia)
+                    print("Você acertou o ataque!")
+                else:
+                    print("Você errou o ataque!")
 
-            remover_inimigos_mortos(id_pc)
+                remover_inimigos_mortos(id_pc)
 
             #Turno dos inimigos
             inimigos_atacam(id_pc, personagem_id)
             if personagem_morreu(personagem_id):
-                print("Você morreu! Fim de jogo.")
+                call_db_function('diminuir_respeito', personagem_id, 15)
+                print("O Computador deu tela azul e nunca mais voltou...!")
                 break
             input("Pressione Enter para continuar...")
         elif escolha == "2":

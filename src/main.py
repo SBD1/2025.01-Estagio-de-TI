@@ -87,6 +87,8 @@ def main_menu():
         escolha = input("Sua escolha: ").strip()
 
         if escolha == '1':
+            print("Espere um momento...")
+            time.sleep(3)
             criar_personagem()
         elif escolha == '2':
             iniciar_jogo()

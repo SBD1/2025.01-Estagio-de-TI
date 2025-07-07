@@ -10,13 +10,26 @@ def exibir_local(personagem_id, personagem_nome):
     if not location_details:
         print("Erro ao carregar o local. Voltando ao menu.")
         return False
+
     nome_local, descricao, _ = location_details
+    sala_id = get_sala_id(personagem_id)
+    itens_chao = get_itens_no_chao(sala_id)
+
     print(f"--- {personagem_nome} ---")
     print(f"Você está no: {nome_local}")
     print(descricao)
+
+    if itens_chao:
+        print("\nItens no chão:")
+        for item in itens_chao:
+            nome_item = item[1]  # Supondo (id_item, nome_item, quantidade)
+            qtd = item[2] if len(item) > 2 else 1
+            print(f" - {nome_item} (x{qtd})")
+
     print("\n--------------------")
     print("O que você faz?\n")
     return True
+
 
 def verificar_npc_na_sala(sala_id):
     # Verifica se há NPCs na sala atual

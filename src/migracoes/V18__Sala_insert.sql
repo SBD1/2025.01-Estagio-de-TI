@@ -14,6 +14,8 @@ INSERT INTO Sala (id_andar, nome, descricao) VALUES
 (13, 'Recepção', 'Balcão com recepcionista.'),                                  -- id_sala = 8
 (13, 'Área de Espera', 'Sofás e revistas tech.'),                               -- id_sala = 9
 
+
+
 -- Andar 1
 (1, 'Sala Central', 'Central do suporte básico.'),                              -- id_sala = 10
 (1, 'Help Desk', 'Baias de atendimento.'),                                      -- id_sala = 11
@@ -62,8 +64,10 @@ INSERT INTO Sala (id_andar, nome, descricao) VALUES
 -- ANDAR 10
 (10, 'Sala Central', 'Recepção da diretoria.'),                                 -- id_sala = 37
 (10, 'Sala do Chefe', 'Escritório principal.'),                                 -- id_sala = 38
-(10, 'Sala de Reuniões', 'Mesa grande e tela de projeção.');                    -- id_sala = 39
+(10, 'Sala de Reuniões', 'Mesa grande e tela de projeção.'),                   -- id_sala = 39
 
+--Cafeteria
+(13, 'Cafeteria', 'Libere sua mente após uma longa jornada de trabalho.');                               -- id_sala = 9
 
 
 INSERT INTO ConexaoSala (id_sala_origem, id_sala_destino) VALUES
@@ -131,7 +135,8 @@ INSERT INTO ConexaoSala (id_sala_origem, id_sala_destino) VALUES
 (37, 38), 
 (38, 37), 
 (37, 39), 
-(39, 37); 
+(39, 37),
+(40, 37);
 
 INSERT INTO PC (id_pc, id_sala) VALUES
 (1, 3),
