@@ -16,8 +16,9 @@ from database import (
     get_all_floors,
     get_interactable_mission_in_room,
     get_inimigos_na_sala,
-    get_player_inventory # Adicionado para o inventário
+    get_player_inventory # Mantém-se, pois é usado em interacoes.py
 )
+# MODIFICAÇÃO 1: Apenas importamos o módulo, as funções são chamadas com interacoes.nome_da_funcao
 import interacoes
 
 
@@ -232,13 +233,18 @@ def game_loop(personagem_id, personagem_nome):
     while True:
         clear_screen()
 
+        # Busca todos os dados no início do loop para manter a tela atualizada
         location_details = get_location_details(personagem_id)
         sala_info = get_player_room_info(personagem_id)
+        stats = get_player_stats(personagem_id)
 
-        if not location_details or not sala_info:
-            print("Erro ao carregar o local. Voltando ao menu.")
+        if not location_details or not sala_info or not stats:
+            print("Erro ao carregar os dados do personagem ou local. Voltando ao menu.")
             time.sleep(3)
             break
+        
+        # Desempacota os status para fácil acesso
+        _, _, _, _, _, ataque, defesa, vida, _ = stats
 
         nome_sala, descricao_sala, saidas_disponiveis = location_details
         sala_id, nome_sala_atual, _ = sala_info
@@ -258,9 +264,12 @@ def game_loop(personagem_id, personagem_nome):
             elif nome_sala_atual == 'Depósito' and tem_almoxarife:
                 loja_info = ('Almoxarifado', 'Equipamento')
 
+        # --- Interface do Jogo Atualizada ---
         print(f"--- {personagem_nome} ---")
-        print(f"Você está em: {nome_sala}")
-        print(descricao_sala)
+        # MODIFICAÇÃO: Exibe os status principais do jogador em todas as telas
+        print(f"Vida: {vida}/100 | Ataque: {ataque} | Defesa: {defesa}")
+        print(f"Local: {nome_sala.strip()}")
+        print(f"\n{descricao_sala}")
         
         if npcs_na_sala:
             print("\nVocê vê por aqui:")
@@ -273,7 +282,6 @@ def game_loop(personagem_id, personagem_nome):
         print("\n--------------------")
         print("O que você faz?\n")
 
-        # Constrói o menu dinamicamente
         opcoes_menu = {i + 1: saida for i, saida in enumerate(saidas_disponiveis)}
         next_idx = len(opcoes_menu) + 1
 
@@ -303,11 +311,9 @@ def game_loop(personagem_id, personagem_nome):
         tasks_idx = next_idx
         next_idx += 1
         
-        # Adiciona a opção de inventário ao menu
-        opcoes_menu[next_idx] = "Ver Inventário"
+        opcoes_menu[next_idx] = "Gerenciar Inventário"
         inventory_idx = next_idx
         
-        # Exibe o menu
         for idx, desc in sorted(opcoes_menu.items()):
             print(f"  [{idx}] {desc}")
         print("\n  [P] Ver status do personagem")
@@ -323,10 +329,9 @@ def game_loop(personagem_id, personagem_nome):
                 mostrar_status(personagem_id)
                 continue
             
-            # Adiciona a opção de inventário ao tratamento de input
             if escolha_str == 'i': # Atalho para inventário
                 clear_screen()
-                interacoes.exibir_inventario(personagem_id)
+                interacoes.gerenciar_inventario(personagem_id)
                 continue
 
             escolha_num = int(escolha_str)
@@ -358,7 +363,7 @@ def game_loop(personagem_id, personagem_nome):
                     interacoes.exibir_missoes_e_demandas(personagem_id)
                 elif escolha_num == inventory_idx:
                     clear_screen()
-                    interacoes.exibir_inventario(personagem_id)
+                    interacoes.gerenciar_inventario(personagem_id)
             else:
                 print("\nOpção inválida. Tente novamente.")
                 time.sleep(2)

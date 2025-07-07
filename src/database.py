@@ -18,6 +18,8 @@ def get_connection():
 def call_db_function(function_name, *args):
     result = None
     conn = get_connection()
+    if not conn:
+        return f"Erro: Falha na conexão com o banco de dados."
     try:
         with conn.cursor() as cur:
             cur.execute(f"SELECT {function_name}({', '.join(['%s'] * len(args))});", args)
@@ -31,13 +33,21 @@ def call_db_function(function_name, *args):
         if conn: conn.close()
     return result
 
+# MODIFICAÇÃO 1: Agora busca da tabela Personagem, filtrando por tipo 'PC'
 def get_all_characters():
     characters = []
     conn = get_connection()
     if not conn: return characters
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT id_personagem, nome FROM Estagiario ORDER BY id_personagem;")
+            # Junta Personagem e Estagiario para garantir que estamos pegando apenas personagens jogáveis criados.
+            cur.execute("""
+                SELECT p.id_personagem, p.nome 
+                FROM Personagem p
+                JOIN Estagiario e ON p.id_personagem = e.id_personagem
+                WHERE p.tipo = 'PC' 
+                ORDER BY p.id_personagem;
+            """)
             characters = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar personagens: {e}")
@@ -165,7 +175,7 @@ def get_player_coins(personagem_id):
             conn.close()
     return coins
 
-
+# MODIFICAÇÃO 2: Agora busca o nome da tabela Personagem
 def get_player_stats(personagem_id):
     """Retorna status completo do jogador."""
     stats = None
@@ -174,9 +184,10 @@ def get_player_stats(personagem_id):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT nome, nivel, xp, respeito, coins, ataque, defesa, vida, status
-                FROM Estagiario
-                WHERE id_personagem = %s;
+                SELECT p.nome, e.nivel, e.xp, e.respeito, e.coins, e.ataque, e.defesa, e.vida, e.status
+                FROM Estagiario e
+                JOIN Personagem p ON e.id_personagem = p.id_personagem
+                WHERE e.id_personagem = %s;
                 """,
                 (personagem_id,),
             )
@@ -188,11 +199,9 @@ def get_player_stats(personagem_id):
             conn.close()
     return stats
 
-
 def buy_item(personagem_id, instancia_id, quantidade):
     """Executa a compra de um item da loja."""
     return call_db_function("comprar_item", personagem_id, instancia_id, quantidade)
-
 
 def use_elevator(personagem_id, andar_destino):
     """Chama a função do banco de dados para usar o elevador."""
@@ -409,33 +418,60 @@ def complete_mission(player_id, mission_id):
     """Chama a função do banco de dados para concluir a missão e obter as recompensas."""
     return call_db_function("concluir_missao", player_id, mission_id)
     
-# =================================================================
-# == NOVA FUNÇÃO PARA O INVENTÁRIO ==
-# =================================================================
+# Função de inventário atualizada para mostrar status (equipado/mochila)
 def get_player_inventory(personagem_id):
-    """Busca os itens no inventário de um jogador."""
+    """Busca os itens no inventário e os itens equipados de um jogador."""
     inventory = []
     conn = get_connection()
     if not conn: return inventory
     query = """
         SELECT
+            inst.id_instancia,
             i.nome,
             ii.quantidade,
             i.descricao,
-            i.tipo
+            i.tipo,
+            'Na Mochila' as status
         FROM Inventario inv
         JOIN ItemInventario ii ON inv.id_inventario = ii.id_inventario
         JOIN InstanciaItem inst ON ii.id_instancia = inst.id_instancia
         JOIN Item i ON inst.id_item = i.id_item
         WHERE inv.id_estagiario = %s
-        ORDER BY i.tipo, i.nome;
+
+        UNION ALL
+
+        SELECT
+            inst.id_instancia,
+            i.nome,
+            1 as quantidade, -- Itens equipados sempre têm quantidade 1
+            i.descricao,
+            i.tipo,
+            'Equipado (' || ee.slot || ')' as status
+        FROM EstagiarioEquipamento ee
+        JOIN InstanciaItem inst ON ee.id_instancia = inst.id_instancia
+        JOIN Item i ON inst.id_item = i.id_item
+        WHERE ee.id_estagiario = %s
+        ORDER BY tipo, nome;
     """
     try:
         with conn.cursor() as cur:
-            cur.execute(query, (personagem_id,))
+            cur.execute(query, (personagem_id, personagem_id))
             inventory = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar inventário do jogador: {e}")
     finally:
         if conn: conn.close()
     return inventory
+
+# funções para chamar a lógica do banco de dados
+def use_item(personagem_id, instancia_id):
+    """Chama a função para usar um item consumível ou power-up."""
+    return call_db_function("usar_item", personagem_id, instancia_id)
+
+def equip_item(personagem_id, instancia_id):
+    """Chama a função para equipar um item."""
+    return call_db_function("equipar_item", personagem_id, instancia_id)
+
+def unequip_item(personagem_id, instancia_id):
+    """Chama a função para desequipar um item."""
+    return call_db_function("desequipar_item", personagem_id, instancia_id)

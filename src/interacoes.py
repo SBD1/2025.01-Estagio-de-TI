@@ -1,17 +1,21 @@
 import time
 import random
 
+# MODIFICAÇÃO 1: Importar as novas funções de interação com itens
 from database import (
     get_npcs_in_room,
     get_player_missions_status,
     accept_mission,
     complete_mission,
     get_player_missions,
-    get_player_stats, 
-    get_inimigos_na_sala, 
-    get_missao_combate_ativa, 
+    get_player_stats,
+    get_inimigos_na_sala,
+    get_missao_combate_ativa,
     atualizar_progresso_combate,
-    get_player_inventory
+    get_player_inventory,
+    use_item,      # Adicionado
+    equip_item,    # Adicionado
+    unequip_item   # Adicionado
 )
 from dialogos import DIALOGOS
 
@@ -67,11 +71,11 @@ def conversar_com_npc(player_id, sala_id):
                         break
 
             if player_missions.get(8) == 'Em Andamento' and 'missao_alvo' in npc_script:
-                 _print_dialogue(nome_npc, npc_script['missao_alvo'])
-                 print("\n(Você recuperou o Pão de Queijo!)")
-                 message = complete_mission(player_id, 8)
-                 print(message)
-                 input("\nPressione Enter para continuar...")
+                _print_dialogue(nome_npc, npc_script['missao_alvo'])
+                print("\n(Você recuperou o Pão de Queijo!)")
+                message = complete_mission(player_id, 8)
+                print(message)
+                input("\nPressione Enter para continuar...")
 
             elif mission_in_progress_id:
                 dialogo = npc_script['missao_em_andamento'][mission_in_progress_id]
@@ -164,6 +168,7 @@ def iniciar_combate(player_id, sala_id):
             print("Erro: não foi possível carregar os dados do jogador para o combate.")
             return
             
+        # Os índices mudaram devido à nova query em get_player_stats
         vida_jogador = player_stats[7]
         ataque_jogador = player_stats[5]
         defesa_jogador = player_stats[6]
@@ -227,28 +232,68 @@ def iniciar_combate(player_id, sala_id):
     print("\nTodos os inimigos na sala foram derrotados. A área está segura.")
     time.sleep(2)
 
-def exibir_inventario(personagem_id):
-    """Exibe o inventário do jogador, agrupado por tipo de item."""
-    print("\n=== SUA MOCHILA ===\n")
-    items = get_player_inventory(personagem_id)
+# MODIFICAÇÃO 2: A função de exibir inventário foi substituída por uma função de gerenciamento interativo.
+def gerenciar_inventario(personagem_id):
+    """Exibe o inventário do jogador e permite interagir com os itens."""
+    while True:
+        print("\n=== SUA MOCHILA E EQUIPAMENTOS ===\n")
+        # A função get_player_inventory agora retorna mais colunas
+        items = get_player_inventory(personagem_id)
 
-    if not items:
-        print("Sua mochila está vazia. Hora de conseguir alguns itens!")
-        input("\nPressione Enter para continuar...")
-        return
+        if not items:
+            print("Você não tem nenhum item. Hora de conseguir alguns!")
+            input("\nPressione Enter para continuar...")
+            return
 
-    grouped_items = {}
-    for nome, quantidade, descricao, tipo in items:
-        if tipo not in grouped_items:
-            grouped_items[tipo] = []
-        grouped_items[tipo].append((nome, quantidade, descricao))
+        # Mapeia o índice da lista para o ID da instância do item para fácil seleção
+        item_map = {}
+        for idx, (id_instancia, nome, quantidade, descricao, tipo, status) in enumerate(items, 1):
+            item_map[idx] = (id_instancia, tipo, status)
+            print(f" [{idx}] {nome} (x{quantidade}) - [{status}]")
+            print(f"       ↳ {descricao}\n")
 
-    for tipo in ['Equipamento', 'Consumivel', 'PowerUp']:
-        if tipo in grouped_items:
-            print(f"--- {tipo.upper()}S ---")
-            for nome, quantidade, descricao in grouped_items[tipo]:
-                print(f"  - {nome} (x{quantidade})")
-                print(f"    ↳ {descricao}")
-            print() 
+        print(" [0] Voltar")
+        print("\n----------------------------------")
 
-    input("\nPressione Enter para continuar...")
+        try:
+            escolha_str = input("Selecione um item para interagir (ou 0 para sair): ").strip()
+            if not escolha_str or escolha_str == "0":
+                return
+
+            escolha = int(escolha_str)
+            if escolha in item_map:
+                id_instancia, tipo, status = item_map[escolha]
+                mensagem = ""
+
+                # Lógica para itens consumíveis ou power-ups que estão na mochila
+                if tipo in ['Consumivel', 'PowerUp'] and 'Equipado' not in status:
+                    confirm = input(f"Deseja usar '{items[escolha-1][1]}'? (s/n): ").lower()
+                    if confirm == 's':
+                        mensagem = use_item(personagem_id, id_instancia)
+
+                # Lógica para equipamentos
+                elif tipo == 'Equipamento':
+                    if 'Equipado' in status:
+                        confirm = input(f"Deseja desequipar '{items[escolha-1][1]}'? (s/n): ").lower()
+                        if confirm == 's':
+                            mensagem = unequip_item(personagem_id, id_instancia)
+                    else:
+                        confirm = input(f"Deseja equipar '{items[escolha-1][1]}'? (s/n): ").lower()
+                        if confirm == 's':
+                            mensagem = equip_item(personagem_id, id_instancia)
+                else:
+                    print("\nNão há ação disponível para este item no momento.")
+                    time.sleep(2)
+
+
+                if mensagem:
+                    print(f"\n{mensagem}")
+                    time.sleep(2.5)
+
+            else:
+                print("Opção inválida.")
+                time.sleep(2)
+
+        except (ValueError):
+            print("Entrada inválida. Por favor, digite um número.")
+            time.sleep(2)
