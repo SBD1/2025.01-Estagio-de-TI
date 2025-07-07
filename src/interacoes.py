@@ -1,16 +1,17 @@
 import time
 import random
-# >> IMPORTS CORRIGIDOS E ADICIONADOS
+
 from database import (
     get_npcs_in_room,
     get_player_missions_status,
     accept_mission,
     complete_mission,
     get_player_missions,
-    get_player_stats, # Adicionado para o combate
-    get_inimigos_na_sala, # Adicionado para o combate
-    get_missao_combate_ativa, # Adicionado para o combate
-    atualizar_progresso_combate # Adicionado para o combate
+    get_player_stats, 
+    get_inimigos_na_sala, 
+    get_missao_combate_ativa, 
+    atualizar_progresso_combate,
+    get_player_inventory
 )
 from dialogos import DIALOGOS
 
@@ -68,7 +69,7 @@ def conversar_com_npc(player_id, sala_id):
             if player_missions.get(8) == 'Em Andamento' and 'missao_alvo' in npc_script:
                  _print_dialogue(nome_npc, npc_script['missao_alvo'])
                  print("\n(Você recuperou o Pão de Queijo!)")
-                 message = complete_mission(player_id, 8) # Chama a função correta
+                 message = complete_mission(player_id, 8)
                  print(message)
                  input("\nPressione Enter para continuar...")
 
@@ -184,7 +185,6 @@ def iniciar_combate(player_id, sala_id):
                 if vida_inimigo <= 0:
                     print(f"\nVocê derrotou o(a) {nome_inimigo}!")
                     
-                    # >> CORREÇÃO NA CHAMADA DA FUNÇÃO
                     atualizar_progresso_combate(mission_id) 
                     progresso = get_missao_combate_ativa(player_id, mission_id)
                     
@@ -226,3 +226,29 @@ def iniciar_combate(player_id, sala_id):
 
     print("\nTodos os inimigos na sala foram derrotados. A área está segura.")
     time.sleep(2)
+
+def exibir_inventario(personagem_id):
+    """Exibe o inventário do jogador, agrupado por tipo de item."""
+    print("\n=== SUA MOCHILA ===\n")
+    items = get_player_inventory(personagem_id)
+
+    if not items:
+        print("Sua mochila está vazia. Hora de conseguir alguns itens!")
+        input("\nPressione Enter para continuar...")
+        return
+
+    grouped_items = {}
+    for nome, quantidade, descricao, tipo in items:
+        if tipo not in grouped_items:
+            grouped_items[tipo] = []
+        grouped_items[tipo].append((nome, quantidade, descricao))
+
+    for tipo in ['Equipamento', 'Consumivel', 'PowerUp']:
+        if tipo in grouped_items:
+            print(f"--- {tipo.upper()}S ---")
+            for nome, quantidade, descricao in grouped_items[tipo]:
+                print(f"  - {nome} (x{quantidade})")
+                print(f"    ↳ {descricao}")
+            print() 
+
+    input("\nPressione Enter para continuar...")

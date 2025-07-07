@@ -158,9 +158,9 @@ INSERT INTO NPC (id_personagem, tipo, andar_atual, dialogo_padrao) VALUES
 (4, 'colega', 11, 'Os servidores precisam estar sempre funcionando...'),
 (5, 'almoxarife', 12, 'Preciso organizar esse estoque...'),
 (6, 'colega', 13, 'Bem-vindo! Como posso ajudar?'),
-(7, 'colega', 11, 'Os servidores precisam estar sempre funcionando...'),
+(7, 'colega', 7, 'Os servidores precisam estar sempre funcionando...'),
 (8, 'almoxarife', 12, 'Preciso organizar esse estoque...'),
-(9, 'colega', 13, 'Bem-vindo! Como posso ajudar?'),
+(9, 'colega', 7, 'Bem-vindo! Como posso ajudar?'),
 (10, 'barista', 13, 'Bom dia! Que tal um cafezinho?'),
 (11, 'colega', 8, 'Só mais um deploy e eu... ah, oi.'),
 (12, 'chefe', 6, 'A segurança da informação é a prioridade máxima.');

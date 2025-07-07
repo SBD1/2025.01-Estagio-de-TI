@@ -1,7 +1,7 @@
 import os
 import time
 import sys
-# >> IMPORTS CORRIGIDOS E COMPLETOS <<
+# >> IMPORTS ATUALIZADOS <<
 from database import (
     call_db_function,
     get_all_characters,
@@ -15,7 +15,8 @@ from database import (
     use_elevator,
     get_all_floors,
     get_interactable_mission_in_room,
-    get_inimigos_na_sala # Adicionado para o combate
+    get_inimigos_na_sala,
+    get_player_inventory # Adicionado para o inventário
 )
 import interacoes
 
@@ -110,58 +111,65 @@ def iniciar_jogo():
         print("\nOpção inválida. Retornando ao menu principal.")
         time.sleep(2)
 
-def abrir_loja(personagem_id, item_type):
-    """Interface simples de compra de itens."""
+def abrir_loja(personagem_id, loja_info):
+    """
+    Interface de compra de itens.
+    'loja_info' é uma tupla (nome_da_loja, tipo_de_item).
+    """
+    nome_loja, item_type = loja_info
+    
     while True:
         clear_screen()
         itens = get_items_for_sale(item_type)
         coins = get_player_coins(personagem_id)
-        nome_loja = 'Loja'
-        if item_type == 'Consumivel':
-            nome_loja = 'Cafeteria'
-        elif item_type == 'Equipamento':
-            nome_loja = 'Depósito'
-        print(f"=== {nome_loja} ===  (Coins: {coins} C$)\n")
+
+        print(f"=== BEM-VINDO À {nome_loja.upper()} ===")
+        print(f"Você tem: {coins} C$\n")
+
         if not itens:
-            print("A loja está vazia.")
-            input("Pressione Enter para voltar.")
+            print("Não há nada para vender aqui no momento.")
+            input("\nPressione Enter para voltar.")
             return
 
+        print("Itens disponíveis:\n")
         for i, (inst_id, nome, desc, preco, qtd, bonus_atk, bonus_def, bonus_hp) in enumerate(itens, start=1):
-            print(f"[{i}] {nome} - {preco} C$ (x{qtd})")
+            print(f" [{i}] {nome} - {preco} C$ (Disponível: {qtd})")
+            
             atributos = []
-            if bonus_hp:
-                atributos.append(f"Vida +{bonus_hp}")
-            if bonus_atk:
-                atributos.append(f"Ataque +{bonus_atk}")
-            if bonus_def:
-                atributos.append(f"Defesa +{bonus_def}")
+            if bonus_hp > 0: atributos.append(f"Vida +{bonus_hp}")
+            if bonus_atk > 0: atributos.append(f"Ataque +{bonus_atk}")
+            if bonus_def > 0: atributos.append(f"Defesa +{bonus_def}")
             attr_text = f" [{', '.join(atributos)}]" if atributos else ""
-            print(f"    {desc}{attr_text}")
-        print("[0] Voltar")
+            
+            print(f"     ↳ {desc}{attr_text}\n")
+            
+        print(" [0] Voltar")
+        print("\n--------------------")
 
-        escolha = input("Escolha um item: ").strip()
-        if escolha == "0":
-            return
         try:
-            idx = int(escolha)
+            escolha_str = input("O que deseja comprar? ").strip()
+            if not escolha_str or escolha_str == "0":
+                return
+            
+            idx = int(escolha_str)
             if 1 <= idx <= len(itens):
-                inst_id = itens[idx - 1][0]
-                max_q = itens[idx - 1][4]
-                q = input(f"Quantidade (1-{max_q}): ").strip()
-                q = int(q) if q else 1
-                if q < 1 or q > max_q:
-                    print("Quantidade inválida.")
+                inst_id, _, _, _, max_q, _, _, _ = itens[idx - 1]
+                
+                qnt_str = input(f"Quantidade (1-{max_q}, Enter para 1): ").strip()
+                quantidade = int(qnt_str) if qnt_str.isdigit() and int(qnt_str) > 0 else 1
+
+                if 1 <= quantidade <= max_q:
+                    mensagem = buy_item(personagem_id, inst_id, quantidade)
+                    print(f"\n{mensagem}")
                     time.sleep(2)
-                    continue
-                msg = buy_item(personagem_id, inst_id, q)
-                print(msg)
-                time.sleep(2)
+                else:
+                    print("\nQuantidade inválida.")
+                    time.sleep(2)
             else:
-                print("Opção inválida.")
+                print("\nOpção inválida.")
                 time.sleep(2)
         except ValueError:
-            print("Digite números válidos.")
+            print("\nPor favor, digite um número válido.")
             time.sleep(2)
 
 def mostrar_status(personagem_id):
@@ -220,11 +228,7 @@ def menu_elevador(personagem_id):
         time.sleep(2)
 
 def game_loop(personagem_id, personagem_nome):
-    """O loop principal do jogo, com menu de opções numérico."""
-    clear_screen()
-    print(f"Iniciando o jogo com {personagem_nome}...")
-    time.sleep(2)
-
+    """O loop principal do jogo, com menu de opções dinâmico."""
     while True:
         clear_screen()
 
@@ -237,14 +241,22 @@ def game_loop(personagem_id, personagem_nome):
             break
 
         nome_sala, descricao_sala, saidas_disponiveis = location_details
-        sala_id = sala_info[0]
+        sala_id, nome_sala_atual, _ = sala_info
         
         saidas_disponiveis = saidas_disponiveis or []
         npcs_na_sala = get_npcs_in_room(sala_id)
         interactable_mission = get_interactable_mission_in_room(personagem_id, sala_id)
-        
-        # >> LÓGICA DE COMBATE ADICIONADA <<
         inimigos_na_sala = get_inimigos_na_sala(sala_id)
+
+        loja_info = None
+        if npcs_na_sala:
+            tem_barista = any(npc[2] == 'barista' for npc in npcs_na_sala)
+            tem_almoxarife = any(npc[2] == 'almoxarife' for npc in npcs_na_sala)
+            
+            if nome_sala_atual == 'Cafeteria' and tem_barista:
+                loja_info = ('Cafeteria', 'Consumivel')
+            elif nome_sala_atual == 'Depósito' and tem_almoxarife:
+                loja_info = ('Almoxarifado', 'Equipamento')
 
         print(f"--- {personagem_nome} ---")
         print(f"Você está em: {nome_sala}")
@@ -255,9 +267,8 @@ def game_loop(personagem_id, personagem_nome):
             for _, nome_npc, tipo_npc in npcs_na_sala:
                 print(f"- {nome_npc} ({tipo_npc})")
         
-        # >> AVISO DE PERIGO ADICIONADO <<
         if inimigos_na_sala:
-            print("\n\033[91mPERIGO! Há inimigos nesta sala!\033[0m") # Texto em vermelho
+            print("\n\033[91mPERIGO! Há inimigos nesta sala!\033[0m")
 
         print("\n--------------------")
         print("O que você faz?\n")
@@ -266,38 +277,40 @@ def game_loop(personagem_id, personagem_nome):
         opcoes_menu = {i + 1: saida for i, saida in enumerate(saidas_disponiveis)}
         next_idx = len(opcoes_menu) + 1
 
-        # >> LÓGICA DO MENU DE COMBATE ADICIONADA <<
+        loja_idx, combat_idx, talk_idx, interact_idx, tasks_idx, inventory_idx = -1, -1, -1, -1, -1, -1
+
+        if loja_info:
+            opcoes_menu[next_idx] = f"Comprar na {loja_info[0]}"
+            loja_idx = next_idx
+            next_idx += 1
+        
         if inimigos_na_sala:
             opcoes_menu[next_idx] = "Entrar em Combate"
             combat_idx = next_idx
             next_idx += 1
-        else:
-            combat_idx = -1
 
         if npcs_na_sala:
             opcoes_menu[next_idx] = "Falar com alguém"
             talk_idx = next_idx
             next_idx += 1
-        else:
-            talk_idx = -1
 
         if interactable_mission:
             opcoes_menu[next_idx] = "Interagir com o ambiente"
             interact_idx = next_idx
             next_idx += 1
-        else:
-            interact_idx = -1
             
         opcoes_menu[next_idx] = "Ver Tarefas (Missões)"
         tasks_idx = next_idx
+        next_idx += 1
         
-        opcoes_menu[0] = "Voltar ao menu principal"
-
+        # Adiciona a opção de inventário ao menu
+        opcoes_menu[next_idx] = "Ver Inventário"
+        inventory_idx = next_idx
+        
         # Exibe o menu
         for idx, desc in sorted(opcoes_menu.items()):
-            if idx != 0:
-                print(f"  [{idx}] {desc}")
-        print("  [P] Ver status do personagem")
+            print(f"  [{idx}] {desc}")
+        print("\n  [P] Ver status do personagem")
         print("  [0] Voltar ao menu principal")
         print("\n--------------------")
 
@@ -308,6 +321,12 @@ def game_loop(personagem_id, personagem_nome):
             
             if escolha_str == 'p':
                 mostrar_status(personagem_id)
+                continue
+            
+            # Adiciona a opção de inventário ao tratamento de input
+            if escolha_str == 'i': # Atalho para inventário
+                clear_screen()
+                interacoes.exibir_inventario(personagem_id)
                 continue
 
             escolha_num = int(escolha_str)
@@ -321,13 +340,13 @@ def game_loop(personagem_id, personagem_nome):
                 opcao_escolhida = opcoes_menu[escolha_num]
                 
                 if opcao_escolhida in saidas_disponiveis:
-                    if opcao_escolhida == "Chamar Elevador":
+                    if "Elevador" in opcao_escolhida:
                         menu_elevador(personagem_id)
                     else:
                         call_db_function('mover_personagem', personagem_id, opcao_escolhida)
-                        time.sleep(1)
-                
-                # >> LÓGICA DE TRATAMENTO DE ESCOLHA ATUALIZADA <<
+                    time.sleep(1)
+                elif escolha_num == loja_idx:
+                    abrir_loja(personagem_id, loja_info)
                 elif escolha_num == combat_idx:
                     interacoes.iniciar_combate(personagem_id, sala_id)
                 elif escolha_num == talk_idx:
@@ -335,8 +354,11 @@ def game_loop(personagem_id, personagem_nome):
                 elif escolha_num == interact_idx:
                     interacoes.interagir_com_ambiente(personagem_id, interactable_mission)
                 elif escolha_num == tasks_idx:
+                    clear_screen()
                     interacoes.exibir_missoes_e_demandas(personagem_id)
-            
+                elif escolha_num == inventory_idx:
+                    clear_screen()
+                    interacoes.exibir_inventario(personagem_id)
             else:
                 print("\nOpção inválida. Tente novamente.")
                 time.sleep(2)
@@ -354,7 +376,7 @@ def main_menu():
     while True:
         clear_screen()
         print("========================================")
-        print("      BEM-VINDO AO JOGO DE TERMINAL     ")
+        print("      BEM-VINDO À SAGA DO ESTAGIÁRIO    ")
         print("========================================")
         print("\nEscolha uma opção:")
         print("  [1] Criar Novo Personagem")

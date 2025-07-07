@@ -408,3 +408,34 @@ def atualizar_progresso_combate(mission_id):
 def complete_mission(player_id, mission_id):
     """Chama a função do banco de dados para concluir a missão e obter as recompensas."""
     return call_db_function("concluir_missao", player_id, mission_id)
+    
+# =================================================================
+# == NOVA FUNÇÃO PARA O INVENTÁRIO ==
+# =================================================================
+def get_player_inventory(personagem_id):
+    """Busca os itens no inventário de um jogador."""
+    inventory = []
+    conn = get_connection()
+    if not conn: return inventory
+    query = """
+        SELECT
+            i.nome,
+            ii.quantidade,
+            i.descricao,
+            i.tipo
+        FROM Inventario inv
+        JOIN ItemInventario ii ON inv.id_inventario = ii.id_inventario
+        JOIN InstanciaItem inst ON ii.id_instancia = inst.id_instancia
+        JOIN Item i ON inst.id_item = i.id_item
+        WHERE inv.id_estagiario = %s
+        ORDER BY i.tipo, i.nome;
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (personagem_id,))
+            inventory = cur.fetchall()
+    except Exception as e:
+        print(f"Erro ao buscar inventário do jogador: {e}")
+    finally:
+        if conn: conn.close()
+    return inventory
