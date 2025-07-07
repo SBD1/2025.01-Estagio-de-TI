@@ -1,39 +1,19 @@
-CREATE OR REPLACE FUNCTION verificar_item_tipo_unico() RETURNS TRIGGER AS $$
-DECLARE
-    tipo_item TEXT;
-    count_tipos INT := 0;
+CREATE OR REPLACE FUNCTION verificar_campos_por_tipo()
+RETURNS TRIGGER AS $$
 BEGIN
-    SELECT tipo INTO tipo_item FROM Item WHERE id_item = NEW.id_item;
-
-    IF tipo_item = 'PowerUp' THEN
-        SELECT COUNT(*) INTO count_tipos FROM Consumivel WHERE id_item = NEW.id_item;
-        IF count_tipos > 0 THEN
-            RAISE EXCEPTION 'Item do tipo PowerUp não pode estar também como Consumivel.';
+    IF NEW.tipo = 'PowerUp' THEN
+        IF NEW.recuperacao_vida IS NOT NULL OR NEW.dano IS NOT NULL THEN
+            RAISE EXCEPTION 'Item tipo PowerUp não pode ter campos de outros tipos preenchidos.';
+        END IF;
+        
+    ELSIF NEW.tipo = 'Consumivel' THEN
+        IF NEW.bonus_ataque IS NOT NULL OR NEW.dano IS NOT NULL THEN
+            RAISE EXCEPTION 'Item tipo Consumivel não pode ter campos de outros tipos preenchidos.';
         END IF;
 
-        SELECT COUNT(*) INTO count_tipos FROM Equipamento WHERE id_item = NEW.id_item;
-        IF count_tipos > 0 THEN
-            RAISE EXCEPTION 'Item do tipo PowerUp não pode estar também como Equipamento.';
-        END IF;
-    ELSIF tipo_item = 'Consumivel' THEN
-        SELECT COUNT(*) INTO count_tipos FROM PowerUp WHERE id_item = NEW.id_item;
-        IF count_tipos > 0 THEN
-            RAISE EXCEPTION 'Item do tipo Consumivel não pode estar também como PowerUp.';
-        END IF;
-
-        SELECT COUNT(*) INTO count_tipos FROM Equipamento WHERE id_item = NEW.id_item;
-        IF count_tipos > 0 THEN
-            RAISE EXCEPTION 'Item do tipo Consumivel não pode estar também como Equipamento.';
-        END IF;
-    ELSIF tipo_item = 'Equipamento' THEN
-        SELECT COUNT(*) INTO count_tipos FROM PowerUp WHERE id_item = NEW.id_item;
-        IF count_tipos > 0 THEN
-            RAISE EXCEPTION 'Item do tipo Equipamento não pode estar também como PowerUp.';
-        END IF;
-
-        SELECT COUNT(*) INTO count_tipos FROM Consumivel WHERE id_item = NEW.id_item;
-        IF count_tipos > 0 THEN
-            RAISE EXCEPTION 'Item do tipo Equipamento não pode estar também como Consumivel.';
+    ELSIF NEW.tipo = 'Arma' THEN
+        IF NEW.recuperacao_vida IS NOT NULL OR NEW.bonus_ataque IS NOT NULL THEN
+            RAISE EXCEPTION 'Item tipo Arma não pode ter campos de outros tipos preenchidos.';
         END IF;
     END IF;
 
@@ -41,20 +21,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- PowerUp
-CREATE TRIGGER validar_tipo_powerup
-BEFORE INSERT OR UPDATE ON PowerUp
+CREATE TRIGGER trigger_verificar_campos_item
+BEFORE INSERT OR UPDATE ON Item
 FOR EACH ROW
-EXECUTE FUNCTION verificar_item_tipo_unico();
-
--- Consumivel
-CREATE TRIGGER validar_tipo_consumivel
-BEFORE INSERT OR UPDATE ON Consumivel
-FOR EACH ROW
-EXECUTE FUNCTION verificar_item_tipo_unico();
-
--- Equipamento
-CREATE TRIGGER validar_tipo_equipamento
-BEFORE INSERT OR UPDATE ON Equipamento
-FOR EACH ROW
-EXECUTE FUNCTION verificar_item_tipo_unico();
+EXECUTE FUNCTION verificar_campos_por_tipo();
