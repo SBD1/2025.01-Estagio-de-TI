@@ -15,9 +15,8 @@ CREATE TABLE Ataque (
 CREATE TABLE Inimigo_Ataque (
     id_inimigo INT REFERENCES Inimigo(id_inimigo),
     id_ataque INT REFERENCES Ataque(id_ataque),
-    id_pc INT NOT NULL,
-    PRIMARY KEY (id_inimigo, id_ataque),
-    FOREIGN KEY(id_pc) REFERENCES PC(id_pc)
+    PRIMARY KEY (id_inimigo, id_ataque)
+
 );
 
 CREATE TABLE InstanciaInimigo (
@@ -27,4 +26,5 @@ CREATE TABLE InstanciaInimigo (
     velocidade int NOT NULL,
     FOREIGN KEY (id_inimigo) REFERENCES Inimigo(id_inimigo)
 );
+ALTER TABLE InstanciaInimigo ADD COLUMN id_pc INT REFERENCES PC(id_pc);
 

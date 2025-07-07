@@ -147,3 +147,16 @@ def pc_esta_inutilizavel(id_pc):
         cur.execute("SELECT COUNT(*) FROM instanciainimigo WHERE id_pc = %s;", (id_pc,))
         return cur.fetchone()[0] >= 8
     conn.close()
+
+def get_ataques_inimigo(id_inimigo):
+    conn = get_connection()
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT a.id_ataque, a.nome, a.dano, a.chance_acerto
+            FROM Ataque a
+            JOIN Inimigo_Ataque ia ON ia.id_ataque = a.id_ataque
+            WHERE ia.id_inimigo = %s
+        """, (id_inimigo,))
+        ataques = cur.fetchall()
+    conn.close()
+    return ataques

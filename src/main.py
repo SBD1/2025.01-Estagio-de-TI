@@ -6,15 +6,12 @@ from funcoes.inimigos import *
 from funcoes.navegacao import *
 from funcoes.pc_interacao import *
 from funcoes.personagem import *
+from util.limpar_tela import limpar_tela
 
-
-def clear_screen():
-    #Limpa a tela do terminal
-    os.system('cls' if os.name == 'nt' else 'clear')
 
 def criar_personagem():
 
-    clear_screen()
+    limpar_tela()
     print("--- CRIAÇÃO DE PERSONAGEM ---\n")
     nome = input("Digite o nome do seu personagem: ").strip()
 
@@ -30,7 +27,7 @@ def criar_personagem():
 
 def iniciar_jogo():
     #Lida com a seleção de personagem e o início do loop do jogo
-    clear_screen()
+    limpar_tela()
     print("--- INICIAR JOGO ---\n")
     print("Selecione um personagem para continuar:\n")
 
@@ -52,7 +49,7 @@ def iniciar_jogo():
 
         if not personagem_selecionado:
             raise ValueError
-        clear_screen()
+        limpar_tela()
         print(f"Iniciando o jogo com {personagem_selecionado[1]}...")
         time.sleep(2)
         game_loop(personagem_selecionado[0], personagem_selecionado[1])
@@ -66,7 +63,7 @@ def game_loop(personagem_id, personagem_nome):
     verificar_e_gerar_inimigos()
 
     while True:
-        clear_screen()
+        limpar_tela()
         if not exibir_local(personagem_id, personagem_nome):
             break
         opcoes, saidas = montar_opcoes(personagem_id)
@@ -77,7 +74,7 @@ def game_loop(personagem_id, personagem_nome):
 def main_menu():
     """Exibe o menu principal e gerencia a navegação."""
     while True:
-        clear_screen()
+        limpar_tela()
         print("========================================")
         print("      BEM-VINDO AO JOGO DE TERMINAL     ")
         print("========================================")

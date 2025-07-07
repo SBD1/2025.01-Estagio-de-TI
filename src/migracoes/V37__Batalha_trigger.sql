@@ -1,8 +1,8 @@
 CREATE OR REPLACE FUNCTION criar_instancia_estagiario_batalha()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO InstanciaEstagiario (id_estagiario, vida, status, id_batalha)
-    VALUES (NEW.id_estagiario, 100, 'Normal', NEW.id_batalha);  -- exemplo: vida inicial 100
+    INSERT INTO InstanciaEstagiario (id_personagem, vida_atual, status, id_batalha)
+    VALUES (NEW.id_personagem, 1000, 'Normal', NEW.id_batalha);  -- exemplo: vida inicial 100
 
     RETURN NEW;
 END;
