@@ -250,10 +250,6 @@ INSERT INTO MissaoEntrega (id_missao, id_item, quantidade, id_npc_destino) VALUE
 (5, 5, 1, 9), -- Entregar 1 café para o dev Ana
 (6, 8, 3, 4);  -- Entregar 3 Mouses para o suporte Cláudio
 
--- ===============================================
--- DETALHES DAS NOVAS MISSÕES
--- ===============================================
-
 -- Detalhe da nova Missão de Conversa (o alvo é o NPC Carlos, ID 11)
 INSERT INTO MissaoConversa (id_missao, id_npc_alvo) VALUES
 (8, 11);
