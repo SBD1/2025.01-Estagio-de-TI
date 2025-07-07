@@ -1,5 +1,6 @@
 import os
 import time
+import sys
 from database import (
     call_db_function,
     get_all_characters,
@@ -32,6 +33,54 @@ def criar_personagem():
     mensagem = call_db_function('criar_personagem', nome)
     print(f"\n{mensagem}")
     time.sleep(3)
+
+##############################
+
+def exibir_introducao(nome_personagem):
+    """Exibe o texto de introdução do jogo com efeito de digitação."""
+    clear_screen()
+    
+    texto_intro = f"""
+    Bem-vindo, {nome_personagem}, um jovem estagiário de TI cheio de sonhos.
+    Seu objetivo? Ser contratado como Desenvolvedor Júnior numa das maiores
+    empresas de tecnologia da cidade.
+
+    Mas para isso, você precisa provar seu valor — começando pelo básico
+    (como instalar impressoras e arrumar cabos) até tarefas cada vez mais
+    desafiadoras (programar sistemas, integrar APIs, criar bancos de dados).
+
+    Cada andar do prédio representa uma etapa da sua evolução dentro da empresa!
+
+    --- ESTRUTURA DO JOGO ---
+
+    Neste RPG, você é um estagiário de TI em busca da tão sonhada efetivação.
+    Cada andar de um prédio corporativo representa um novo desafio técnico e
+    profissional. Supere todos os andares para alcançar o topo e conquistar
+    seu cargo!
+
+    - Subsolo 2 (Servidor): Onde está alocado o servidor da empresa. Cuidado com o frio!
+    - Subsolo 1 (Almoxarifado): Itens de suporte (peças, cabos, drivers, ferramentas).
+    - Térreo (Recepção/Cafeteria): Base para missões e compra de consumíveis.
+    - Andares 1 a 10: Cada andar é um setor da empresa com desafios diferentes.
+
+    """
+    
+    # Loop que "digita" o texto
+    for caractere in texto_intro:
+        print(caractere, end='', flush=True)
+        # sys.stdout.flush() # Alternativa para flush=True, garante que o caractere apareça
+        
+        # Adiciona pausas diferentes para um efeito mais natural
+        if caractere in ['.', '!', '?']:
+            time.sleep(0.5)  # Pausa longa no final de frases
+        elif caractere in [',', ';', ':']:
+            time.sleep(0.25) # Pausa média em pontuações
+        else:
+            time.sleep(0.03) # Pausa curta entre caracteres normais
+
+    input("\nPressione Enter para começar sua jornada...")
+
+###############################
 
 def iniciar_jogo():
     """Lida com a seleção de personagem e o início do loop do jogo."""
