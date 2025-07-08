@@ -40,30 +40,27 @@ CREATE TABLE IF NOT EXISTS Cafeteria (
     descricao TEXT
 );
 
--- MODIFICAÇÃO 1: Adicionada constraint de nome único em Personagem
 CREATE TABLE IF NOT EXISTS Personagem (
     id_personagem SERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('PC', 'NPC')),
     descricao VARCHAR(200),
-    CONSTRAINT UQ_Personagem_Nome UNIQUE(nome) -- Garante que nenhum personagem (NPC ou Estagiário) tenha o mesmo nome
+    CONSTRAINT UQ_Personagem_Nome UNIQUE(nome)
 );
 
+-- CORREÇÃO: Adicionada a coluna 'sala_atual' para localização exata do NPC.
 CREATE TABLE IF NOT EXISTS NPC (
     id_personagem INT PRIMARY KEY,
     FOREIGN KEY (id_personagem) REFERENCES Personagem(id_personagem) ON DELETE CASCADE,
-    tipo VARCHAR(10) NOT NULL, -- Ex: 'Chefe', 'Colega', 'Almoxarife'
+    tipo VARCHAR(20) NOT NULL, -- Ex: 'Chefe', 'Colega', 'Almoxarife'
     andar_atual INT REFERENCES Andar(id_andar),
+    sala_atual INT REFERENCES Sala(id_sala), -- <<-- NOVA COLUNA
     dialogo_padrao VARCHAR(300) NOT NULL
 );
 
--- MODIFICAÇÃO 2: Tabela Estagiario agora herda corretamente de Personagem
 CREATE TABLE IF NOT EXISTS Estagiario (
-    id_personagem INT PRIMARY KEY, -- Agora é uma chave primária e estrangeira
+    id_personagem INT PRIMARY KEY,
     FOREIGN KEY (id_personagem) REFERENCES Personagem(id_personagem) ON DELETE CASCADE,
-
-    -- A coluna 'nome' foi removida, pois já existe na tabela Personagem.
-
     xp INT NOT NULL CHECK (xp BETWEEN 0 AND 10000),
     nivel INT NOT NULL CHECK (nivel >= 1 AND nivel <= 100),
     respeito INT DEFAULT 0 CHECK (respeito >= 0 AND respeito <= 100),
@@ -72,12 +69,10 @@ CREATE TABLE IF NOT EXISTS Estagiario (
     defesa INT NOT NULL DEFAULT 5,
     vida INT NOT NULL DEFAULT 100,
     status VARCHAR(20) NOT NULL CHECK (status IN ('Normal', 'Confuso', 'Estressado', 'Motivado')),
-
     andar_atual INT,
     sala_atual INT,
     FOREIGN KEY (andar_atual) REFERENCES Andar(id_andar),
     FOREIGN KEY (sala_atual) REFERENCES Sala(id_sala)
-    -- A constraint de nome único foi movida para a tabela Personagem.
 );
 
 CREATE TABLE IF NOT EXISTS ChefeFinal (
@@ -86,7 +81,6 @@ CREATE TABLE IF NOT EXISTS ChefeFinal (
     desafio_final VARCHAR(200) NOT NULL
 );
 
--- Tabela base
 CREATE TABLE Item (
     id_item SERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -95,7 +89,6 @@ CREATE TABLE Item (
     preco_base INT NOT NULL DEFAULT 0
 );
 
--- Tabelas especializadas (1 pra 1 com Item)
 CREATE TABLE PowerUp (
     id_item INT PRIMARY KEY REFERENCES Item(id_item) ON DELETE CASCADE,
     bonus_ataque INT,
@@ -114,7 +107,6 @@ CREATE TABLE Equipamento (
     bonus_defesa INT DEFAULT 0
 );
 
--- Tabela para instâncias de itens (drops, itens em inventário, etc)
 CREATE TABLE IF NOT EXISTS InstanciaItem (
     id_instancia SERIAL PRIMARY KEY,
     id_item INT REFERENCES Item(id_item),
@@ -139,13 +131,11 @@ CREATE TABLE IF NOT EXISTS ItemInventario (
     FOREIGN KEY (id_instancia) REFERENCES InstanciaItem(id_instancia) ON DELETE CASCADE
 );
 
--- MODIFICAÇÃO 3: Nova tabela para gerenciar itens equipados
 CREATE TABLE IF NOT EXISTS EstagiarioEquipamento (
     id_estagiario INT NOT NULL,
-    id_instancia INT NOT NULL UNIQUE, -- Garante que uma instância de item só pode ser equipada uma vez
+    id_instancia INT NOT NULL UNIQUE,
     slot VARCHAR(50) NOT NULL,
-
-    PRIMARY KEY (id_estagiario, slot), -- Um jogador só pode ter um item por slot (ex: um capacete, uma armadura)
+    PRIMARY KEY (id_estagiario, slot),
     FOREIGN KEY (id_estagiario) REFERENCES Estagiario(id_personagem) ON DELETE CASCADE,
     FOREIGN KEY (id_instancia) REFERENCES InstanciaItem(id_instancia) ON DELETE CASCADE
 );
@@ -156,11 +146,13 @@ CREATE TABLE Inimigo (
     ataque VARCHAR(100) NOT NULL
 );
 
+-- CORREÇÃO: Adicionada a coluna 'sala_atual' para localização exata do inimigo.
 CREATE TABLE InstanciaInimigo (
     id_instancia SERIAL PRIMARY KEY,
     id_inimigo INT NOT NULL,
     vida int NOT NULL,
     dano int NOT NULL,
+    sala_atual INT REFERENCES Sala(id_sala), -- <<-- NOVA COLUNA
     FOREIGN KEY (id_inimigo) REFERENCES Inimigo(id_inimigo)
 );
 
@@ -252,11 +244,7 @@ CREATE TABLE IF NOT EXISTS MissaoConcluida (
     PRIMARY KEY (id_missao, id_estagiario)
 ); 
 
--- Views para funcoes e triggers
--- A view vw_posicao_estagiario continuará a funcionar, mas agora precisa de um JOIN com a tabela Personagem para obter o nome.
--- Para manter a compatibilidade sem alterar a view agora, ela continuará a funcionar, mas não terá o nome.
--- Se precisar do nome, a view precisará ser ajustada.
-CREATE VIEW vw_posicao_estagiario AS
+CREATE OR REPLACE VIEW vw_posicao_estagiario AS
 SELECT 
     e.id_personagem,
     e.andar_atual,
@@ -269,7 +257,7 @@ FROM Estagiario e
 JOIN Andar a ON e.andar_atual = a.id_andar
 JOIN Sala s ON e.sala_atual = s.id_sala;
 
-CREATE VIEW vw_conexoes_salas AS
+CREATE OR REPLACE VIEW vw_conexoes_salas AS
 SELECT 
     cs.id_sala_origem,
     cs.id_sala_destino,
@@ -280,7 +268,7 @@ FROM ConexaoSala cs
 JOIN Sala s ON cs.id_sala_destino = s.id_sala
 JOIN Andar a ON s.id_andar = a.id_andar;
 
-CREATE VIEW vw_sala_central AS
+CREATE OR REPLACE VIEW vw_sala_central AS
 SELECT 
     s.id_sala,
     s.id_andar,
