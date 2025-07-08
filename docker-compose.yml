@@ -19,7 +19,7 @@ services:
     environment:
       FLYWAY_URL: jdbc:postgresql://banco_de_dados:5432/jogo
       FLYWAY_USER: jogador
-      FLYWAY_PASSWORD: sbd1_password  # Corrigido: sdb1 -> sbd1
+      FLYWAY_PASSWORD: sbd1_password  
     volumes:
       - ./src/migracoes:/flyway/sql
     entrypoint: ["flyway", "migrate"]
