@@ -3,7 +3,7 @@ from psycopg2 import pool
 from contextlib import contextmanager
 import sys
 
-# --- CONFIGURAÇÃO INICIAL (sem alterações) ---
+# --- CONFIGURAÇÃO INICIAL ---
 DB_HOST = "localhost"
 DB_PORT = "6000"
 DB_NAME = "jogo"
@@ -12,8 +12,8 @@ DB_PASS = "sbd1_password"
 
 try:
     db_pool = pool.SimpleConnectionPool(
-        minconn=1,  # Número mínimo de conexões no pool
-        maxconn=10, # Número máximo de conexões
+        minconn=1,
+        maxconn=10,
         host=DB_HOST,
         port=DB_PORT,
         dbname=DB_NAME,
@@ -24,10 +24,7 @@ except psycopg2.OperationalError as e:
     print(f"Erro CRÍTICO ao inicializar o pool de conexões: {e}")
     print("Verifique se o container Docker está rodando e as credenciais estão corretas.")
     db_pool = None
-    # Encerra o programa se não conseguir conectar ao banco na inicialização
     sys.exit("Não foi possível conectar ao banco de dados. O programa será encerrado.")
-
-
 
 @contextmanager
 def db_session():
@@ -35,7 +32,6 @@ def db_session():
     conn = None
     try:
         conn = db_pool.getconn()
-        # O autocommit é desabilitado para que possamos controlar a transação.
         conn.autocommit = False
         cur = conn.cursor()
         yield cur
@@ -43,13 +39,11 @@ def db_session():
     except Exception as e:
         if conn:
             conn.rollback()
-        # Re-lança a exceção para que a função que chamou saiba do erro
         raise e
     finally:
         if conn:
             cur.close()
             db_pool.putconn(conn)
-
 
 VALID_DB_FUNCTIONS = {
     'criar_personagem', 'comprar_item', 'usar_elevador', 'mover_personagem',
@@ -57,27 +51,21 @@ VALID_DB_FUNCTIONS = {
 }
 
 def call_db_function(function_name, *args):
-    """
-    Chama uma função PL/pgSQL do banco de dados de forma segura,
-    usando a whitelist e o gerenciador de sessão.
-    """
+    """Chama uma função PL/pgSQL do banco de dados de forma segura."""
     if function_name not in VALID_DB_FUNCTIONS:
         print(f"ALERTA DE SEGURANÇA: Tentativa de chamar função inválida '{function_name}'")
         return "Erro: Operação inválida."
 
     result = None
     try:
-        # Agora usamos nosso gerenciador de sessão!
         with db_session() as cur:
             cur.execute(f"SELECT {function_name}({', '.join(['%s'] * len(args))});", args)
             if cur.description:
                 result = cur.fetchone()[0]
     except Exception as e:
         print(f"Erro ao executar a função '{function_name}': {e}")
-        # O rollback já é tratado pelo db_session
         return f"Erro inesperado ao executar a função: {e}"
     return result
-
 
 def get_all_characters():
     """Busca todos os personagens jogáveis."""
@@ -127,7 +115,7 @@ def get_player_room_info(personagem_id):
     return info
 
 def get_npcs_in_room(sala_id):
-    """Retorna lista de NPCs presentes na sala."""
+    """Retorna lista de NPCs presentes na sala específica."""
     npcs = []
     try:
         with db_session() as cur:
@@ -136,16 +124,14 @@ def get_npcs_in_room(sala_id):
                 SELECT p.id_personagem, p.nome, n.tipo
                 FROM NPC n
                 JOIN Personagem p ON n.id_personagem = p.id_personagem
-                JOIN Sala s ON n.andar_atual = s.id_andar
-                WHERE s.id_sala = %s;
+                WHERE n.sala_atual = %s;
                 """,
                 (sala_id,),
             )
             npcs = cur.fetchall()
     except Exception as e:
-        print(f"Erro ao buscar NPCs: {e}")
+        print(f"Erro ao buscar NPCs na sala: {e}")
     return npcs
-    
 
 def get_items_for_sale(item_type=None):
     itens = []
@@ -287,8 +273,6 @@ def get_player_missions_status(player_id):
     return missions_status
 
 def get_interactable_mission_in_room(player_id, sala_id):
-    if sala_id != 2:
-        return None
     mission = None
     query = """
         SELECT m.id_missao, m.nome, m.tipo
@@ -296,8 +280,7 @@ def get_interactable_mission_in_room(player_id, sala_id):
         JOIN MissaoStatus ms ON m.id_missao = ms.id_missao
         WHERE ms.id_estagiario = %s
           AND ms.status = 'Em Andamento'
-          AND m.tipo = 'Manutenção'
-          AND m.nome = 'Check-up no Servidor';
+          AND m.tipo = 'Manutenção'; 
     """
     try:
         with db_session() as cur:
@@ -308,18 +291,13 @@ def get_interactable_mission_in_room(player_id, sala_id):
     return mission
 
 def get_inimigos_na_sala(sala_id):
+    """Retorna lista de inimigos presentes na sala específica."""
     inimigos = []
     query = """
-        SELECT ii.id_instancia, i.nome, ii.vida, ii.dano, m.id_missao
+        SELECT ii.id_instancia, i.nome, ii.vida, ii.dano, i.id_inimigo
         FROM InstanciaInimigo ii
         JOIN Inimigo i ON ii.id_inimigo = i.id_inimigo
-        JOIN MissaoCombate mc ON i.id_inimigo = mc.id_inimigo
-        JOIN Missao m ON mc.id_missao = m.id_missao
-        JOIN Estagiario e ON m.npc_origem = e.id_personagem -- Lógica simplificada de localização
-        WHERE e.sala_atual = %s AND m.id_missao IN (
-            SELECT ms.id_missao FROM MissaoStatus ms
-            WHERE ms.id_estagiario = e.id_personagem AND ms.status = 'Em Andamento'
-        );
+        WHERE ii.sala_atual = %s;
     """
     try:
         with db_session() as cur:
@@ -345,6 +323,26 @@ def get_missao_combate_ativa(player_id, mission_id):
         print(f"Erro ao buscar progresso da missão de combate: {e}")
     return progresso
 
+# ==================================================================
+# == NOVA FUNÇÃO 1: get_active_combat_missions
+# ==================================================================
+def get_active_combat_missions(player_id):
+    """Busca todas as missões de combate ativas para o jogador."""
+    missions = []
+    query = """
+        SELECT mc.id_missao, mc.id_inimigo, mc.quantidade_alvo, mc.quantidade_atual
+        FROM MissaoCombate mc
+        JOIN MissaoStatus ms ON mc.id_missao = ms.id_missao
+        WHERE ms.id_estagiario = %s AND ms.status = 'Em Andamento';
+    """
+    try:
+        with db_session() as cur:
+            cur.execute(query, (player_id,))
+            missions = cur.fetchall()
+    except Exception as e:
+        print(f"Erro ao buscar missões de combate ativas: {e}")
+    return missions
+
 def atualizar_progresso_combate(mission_id):
     query = "UPDATE MissaoCombate SET quantidade_atual = quantidade_atual + 1 WHERE id_missao = %s;"
     try:
@@ -352,6 +350,30 @@ def atualizar_progresso_combate(mission_id):
             cur.execute(query, (mission_id,))
     except Exception as e:
         print(f"Erro ao atualizar progresso de combate: {e}")
+
+# ==================================================================
+# == NOVA FUNÇÃO 2: reset_player_location
+# ==================================================================
+def reset_player_location(player_id):
+    """Move o jogador para a recepção e restaura parte da vida após a derrota."""
+    try:
+        with db_session() as cur:
+            # IDs da sala e andar da recepção (Térreo, Sala Central)
+            # Estes valores são baseados no seu arquivo DML.
+            id_sala_recepcao = 7 
+            id_andar_recepcao = 13
+
+            cur.execute(
+                """
+                UPDATE Estagiario 
+                SET vida = 50, sala_atual = %s, andar_atual = %s 
+                WHERE id_personagem = %s;
+                """,
+                (id_sala_recepcao, id_andar_recepcao, player_id)
+            )
+    except Exception as e:
+        print(f"Erro ao resetar a localização do jogador: {e}")
+
 
 def get_player_inventory(personagem_id):
     inventory = []
@@ -377,7 +399,6 @@ def get_player_inventory(personagem_id):
     except Exception as e:
         print(f"Erro ao buscar inventário do jogador: {e}")
     return inventory
-
 
 def buy_item(personagem_id, instancia_id, quantidade):
     return call_db_function("comprar_item", personagem_id, instancia_id, quantidade)
