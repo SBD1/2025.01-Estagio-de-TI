@@ -20,6 +20,11 @@ nav:
   #  - Algebra Relacional: ""
     - Terminal: "modulo2/terminal.md"
 
+  - Entrega 3:
+    - Stored Procedures: "modulo3/stored_procedures.md"
+    - Triggers: "modulo3/triggers.md"
+    - Funcionamento do jogo: "modulo3/funcionamentojogo.md"
+
 theme:
   name: material
   logo: assets/imagens/logo.png

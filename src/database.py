@@ -95,6 +95,7 @@ def get_location_details(personagem_id):
         print(f"Erro ao buscar detalhes do local: {e}")
     return details
 
+
 def get_player_room_info(personagem_id):
     """Retorna id, nome e descricao da sala atual do jogador."""
     info = None
@@ -113,6 +114,7 @@ def get_player_room_info(personagem_id):
     except Exception as e:
         print(f"Erro ao buscar sala atual: {e}")
     return info
+
 
 def get_npcs_in_room(sala_id):
     """Retorna lista de NPCs presentes na sala específica."""
@@ -417,3 +419,4 @@ def equip_item(personagem_id, instancia_id):
 
 def unequip_item(personagem_id, instancia_id):
     return call_db_function("desequipar_item", personagem_id, instancia_id)
+

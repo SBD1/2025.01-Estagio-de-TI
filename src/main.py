@@ -1,5 +1,6 @@
 import os
 import time
+<
 import sys
 
 # >> IMPORTS ATUALIZADOS <<
@@ -22,6 +23,7 @@ from database import (
 )
 # MODIFICAÇÃO 1: Apenas importamos o módulo, as funções são chamadas com interacoes.nome_da_funcao
 import interacoes
+
 
 
 def clear_screen():
@@ -213,7 +215,6 @@ def menu_elevador(personagem_id):
 
     print("\n  [0] Sair do elevador")
     print("\n--------------------")
-
     try:
         escolha = int(input("Digite o número do andar de destino: ").strip())
         if escolha == 0:
@@ -233,6 +234,7 @@ def menu_elevador(personagem_id):
 def game_loop(personagem_id, personagem_nome):
     """O loop principal do jogo, com menu de opções dinâmico."""
     while True:
+
         clear_screen()
 
         # Busca todos os dados no início do loop para manter a tela atualizada
@@ -243,6 +245,7 @@ def game_loop(personagem_id, personagem_nome):
         if not location_details or not sala_info or not stats:
             print("Erro ao carregar os dados do personagem ou local. Voltando ao menu.")
             time.sleep(3)
+
             break
         
         # Desempacota os status para fácil acesso
