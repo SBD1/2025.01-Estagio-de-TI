@@ -20,3 +20,11 @@ CREATE TABLE IF NOT EXISTS ConexaoSala (
     CHECK (id_sala_origem != id_sala_destino)
 );
 
+CREATE TABLE PC (
+    id_pc INT PRIMARY KEY,
+    id_sala INT NOT NULL,
+    FOREIGN KEY(id_sala) REFERENCES Sala(id_sala)
+);
+ALTER TABLE PC ADD COLUMN ultimo_acesso TIMESTAMP;
+ALTER TABLE PC ADD COLUMN tipo VARCHAR(20) DEFAULT 'Normal' CHECK (tipo IN ('Normal', 'Bugado'));
+

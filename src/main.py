@@ -1,5 +1,6 @@
 import os
 import time
+
 from database import (
     call_db_function, get_all_characters, get_location_details,
     get_available_missions, accept_mission, get_mission_details, complete_mission,
@@ -9,14 +10,17 @@ from database import (
     complete_delivery_mission, get_mission_progress, update_player_name,
     check_and_complete_missions
 )
-
-def clear_screen():
-    """Limpa a tela do terminal."""
-    os.system('cls' if os.name == 'nt' else 'clear')
+from database import call_db_function, get_all_characters
+from database import call_db_function, get_all_characters, get_location_details
+from funcoes.inimigos import *
+from funcoes.navegacao import *
+from funcoes.pc_interacao import *
+from funcoes.personagem import *
+from util.limpar_tela import limpar_tela
 
 def criar_personagem():
-    """Lida com a lógica de criação de personagem."""
-    clear_screen()
+
+    limpar_tela()
     print("--- CRIAÇÃO DE PERSONAGEM ---\n")
     nome = input("Digite o nome do seu personagem: ").strip()
 
@@ -31,8 +35,8 @@ def criar_personagem():
     time.sleep(3)
 
 def iniciar_jogo():
-    """Lida com a seleção de personagem e o início do loop do jogo."""
-    clear_screen()
+    #Lida com a seleção de personagem e o início do loop do jogo
+    limpar_tela()
     print("--- INICIAR JOGO ---\n")
     print("Selecione um personagem para continuar:\n")
 
@@ -54,7 +58,9 @@ def iniciar_jogo():
 
         if not personagem_selecionado:
             raise ValueError
-
+        limpar_tela()
+        print(f"Iniciando o jogo com {personagem_selecionado[1]}...")
+        time.sleep(2)
         game_loop(personagem_selecionado[0], personagem_selecionado[1])
 
     except (ValueError, IndexError):
@@ -451,20 +457,12 @@ def iniciar_combate(personagem_id):
             time.sleep(1)
 
 def game_loop(personagem_id, personagem_nome):
-    """O loop principal do jogo, com menu de opções numérico."""
-    clear_screen()
-    print(f"Iniciando o jogo com {personagem_nome}...")
-    time.sleep(2)
+    # Verifica se precisa gerar inimigos automaticamente no início
+    verificar_e_gerar_inimigos()
 
     while True:
-        clear_screen()
-        
-        # 1. Pega os detalhes estruturados do local atual
-        location_details = get_location_details(personagem_id)
-
-        if not location_details:
-            print("Erro ao carregar o local. Voltando ao menu.")
-            time.sleep(3)
+        limpar_tela()
+        if not exibir_local(personagem_id, personagem_nome):
             break
         
         nome_sala, descricao_sala, saidas_disponiveis = location_details
@@ -555,10 +553,15 @@ def game_loop(personagem_id, personagem_nome):
             print("\nPor favor, digite um número. Tente novamente.")
             time.sleep(2)
 
+        opcoes, saidas = montar_opcoes(personagem_id)
+        exibir_opcoes(opcoes)
+        if not processar_escolha(personagem_id, opcoes, saidas):
+            break
+    
 def main_menu():
     """Exibe o menu principal e gerencia a navegação."""
     while True:
-        clear_screen()
+        limpar_tela()
         print("========================================")
         print("      BEM-VINDO AO JOGO DE TERMINAL     ")
         print("========================================")
@@ -571,6 +574,8 @@ def main_menu():
         escolha = input("Sua escolha: ").strip()
 
         if escolha == '1':
+            print("Espere um momento...")
+            time.sleep(3)
             criar_personagem()
         elif escolha == '2':
             iniciar_jogo()
