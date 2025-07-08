@@ -646,7 +646,7 @@ def check_and_complete_missions(player_id):
         return []
     finally:
         if conn: conn.close()
-=======
+
 def get_dialogo_npc(id_npc):
     conn = get_connection()
     with conn.cursor() as cur:
