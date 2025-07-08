@@ -9,20 +9,9 @@ services:
     ports:
       - "6000:5432"
     volumes:
-      # Mapeia nosso script de inicialização único para a pasta correta no container
       - postgres_data:/var/lib/postgresql/data
-  controla_migracoes:
-    image: flyway/flyway:latest
-    container_name: migracoes
-    depends_on: 
-      - banco_de_dados
-    environment:
-      FLYWAY_URL: jdbc:postgresql://banco_de_dados:5432/jogo
-      FLYWAY_USER: jogador
-      FLYWAY_PASSWORD: sbd1_password  
-    volumes:
-      - ./src/migracoes:/flyway/sql
-    entrypoint: ["flyway", "migrate"]
+      # Executa os scripts de inicialização automaticamente
+      - ./sql:/docker-entrypoint-initdb.d
 
 volumes:
   postgres_data:
