@@ -159,5 +159,140 @@ DIALOGOS = {
             9: "A ameaça ainda não foi neutralizada. Mexa-se, soldado!"
         },
         'padrao': "A segurança é como o oxigénio. Quando se tem, não se nota. Quando não se tem, é tarde demais."
+    },
+
+    # --- NOVOS DIÁLOGOS PARA ANDARES VAZIOS ---
+
+    # --- Fernanda (ID: 13) - Andar 1 ---
+    # Missão: O Fantasma da Impressora (ID: 10)
+    13: {
+        'missao_disponivel': {
+            10: [
+                "Você não vai acreditar... Tenho um ticket para instalar uma impressora fiscal de 1998.",
+                "Já procurei em toda a intranet, mas o driver simplesmente não existe mais!",
+                "A única esperança é encontrar o CD de instalação original. Deve estar em algum canto do almoxarifado no subsolo. Pode procurar por mim?"
+            ]
+        },
+        'missao_em_andamento': {
+            10: "Ainda sem o CD? O setor de contabilidade está a ameaçar usar uma máquina de escrever..."
+        },
+        'padrao': "Por favor, diga-me que não é sobre a impressora..."
+    },
+
+    # --- Ricardo (ID: 14) - Andar 2 ---
+    # Missão: Caça aos Capacitores (ID: 11)
+    14: {
+        'missao_disponivel': {
+            11: [
+                "Ei, estagiário. Gosta de hardware? Eu também. Gosto tanto que até coleciono.",
+                "Estou a trabalhar num projeto pessoal e preciso de... componentes. Especificamente, capacitores estufados.",
+                "Eles têm uma... essência única. Derrote alguns 'Bugs', eles costumam ter peças danificadas. Traga-me 5 e eu recompenso-o."
+            ]
+        },
+        'missao_em_andamento': {
+            11: "Já conseguiu os capacitores? A minha obra-prima não pode esperar!"
+        },
+        'padrao': "Cada peça de hardware conta uma história. Esta aqui? Conta a história de um pico de energia."
+    },
+
+    # --- Laura (ID: 15) - Andar 3 ---
+    # Missão: O Cliente Furioso (ID: 12)
+    15: {
+        'missao_disponivel': {
+            12: [
+                "Estou a ver nos monitores... há um cliente muito, muito zangado na recepção do térreo.",
+                "Ele está a ameaçar escalar para a diretoria. Isso seria péssimo para nós.",
+                "Você tem cara de quem sabe lidar com pessoas. Pode ir lá e tentar acalmá-lo? Ofereça um café, sei lá. Só evite que ele suba!"
+            ]
+        },
+        'missao_em_andamento': {
+            12: "Ele ainda está lá? Consigo ouvir os gritos daqui de cima... ou talvez seja só o zumbido do servidor."
+        },
+        'padrao': "99% dos problemas se resolvem reiniciando. O 1% restante é que nos paga o salário."
+    },
+
+    # --- Cliente Furioso (ID: 16) - Térreo ---
+    16: {
+        'missao_alvo': [ # Diálogo especial quando o jogador com a missão fala com ele
+            "O QUÊ? QUER QUE EU ME ACALME?! ESTOU HÁ HORAS A ESPERAR!",
+            "O sistema de vocês apagou todos os meus dados! Anos de trabalho!",
+            "...um café? E um pedido de desculpas formal? ...Ok. Ok. Eu espero mais um pouco. Mas resolvam isso!"
+        ],
+        'padrao': "NÃO FALE COMIGO! ONDE ESTÁ O GERENTE?!"
+    },
+
+    # --- Otávio (ID: 17) - Andar 4 ---
+    # Missão: O Pesadelo dos Cabos (ID: 13) - Esta será uma missão de interação
+    17: {
+        'missao_disponivel': {
+            13: [
+                "Olhe... olhe para aquela monstruosidade!",
+                "(Ele aponta para um rack de servidores com cabos que parecem um ninho de cobras.)",
+                "É uma ofensa à lógica, à ordem! Por favor, use suas habilidades de estagiário e organize aquilo. Eu... eu não consigo nem olhar."
+            ]
+        },
+        'missao_em_andamento': {
+            13: "Seja o herói que este andar precisa. Lute contra o caos do cabeamento!"
+        },
+        'padrao': "Um rack organizado é um reflexo de uma mente organizada."
+    },
+    
+    # --- Vanessa (ID: 18) - Andar 5 ---
+    # Missão: Latência Infernal (ID: 14)
+    18: {
+        'missao_disponivel': {
+            14: [
+                "A telemetria está a indicar perda de pacotes e um aumento exponencial no RTT.",
+                "A causa provável é uma inundação de pacotes desgovernados na sub-rede 10.0.5.0/24.",
+                "Sua diretiva é clara: intercete e termine os processos desses pacotes. Conto com o seu ACK."
+            ]
+        },
+        'missao_em_andamento': {
+            14: "O problema persiste. Continue a depuração da rede. Over and out."
+        },
+        'padrao': "SYN, SYN-ACK, ACK. Simples, não?"
+    },
+
+    # --- Daniel (ID: 19) - Andar 9 ---
+    # Missão: Pipeline Quebrado (ID: 15)
+    19: {
+        'missao_disponivel': {
+            15: [
+                "Deploy falhou. De novo. O pipeline de integração contínua está engasgado.",
+                "Criei um script de correção aqui, mas ele precisa ser executado no servidor mestre, no Data Center do Subsolo 2.",
+                "Não posso sair daqui. Leve este script para o Severino, ele saberá o que fazer. Go, go, go!"
+            ]
+        },
+        'missao_em_andamento': {
+            15: "O deploy ainda está pendente! O tempo é um recurso finito, vamos otimizá-lo!"
+        },
+        'padrao': "Se você fez algo duas vezes, deveria ter automatizado na primeira."
+    },
+
+    # --- Beatriz (ID: 20) - Andar 10 ---
+    # Missão: O Projeto Final (ID: 16)
+    20: {
+        'missao_disponivel': {
+            16: [
+                "Ah, olá. O Dr. Everton estava à sua espera. Ele acompanhou seu progresso na empresa.",
+                "Ele tem um último desafio para si. Se passar, a vaga de efetivo é sua.",
+                "Respire fundo. Ele está na sala dele. Boa sorte, vai precisar."
+            ]
+        },
+        'missao_em_andamento': {
+            16: "Não hesite. O Dr. Everton odeia atrasos."
+        },
+        'padrao': "Posso agendar uma reunião para si... talvez para o próximo trimestre?"
+    },
+
+    # --- Dr. Everton "O Chefão" (ID: 21) - Andar 10 ---
+    21: {
+        'missao_alvo': [
+            "Então... é você. O estagiário de quem todos falam.",
+            "Percorreu um longo caminho, desde o subsolo até minha sala. Mas serviço de entrega e caça-bugs não fazem um desenvolvedor.",
+            "Eu preciso de visão. De estratégia. Apresente-me agora, em poucas palavras, o projeto final que você desenvolveu para otimizar nossos processos.",
+            "(Este é o momento final. Sua resposta determinará seu futuro na empresa...)"
+        ],
+        'padrao': "Não me faça perder tempo."
     }
 }

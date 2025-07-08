@@ -1,46 +1,89 @@
 import psycopg2
+from psycopg2 import pool
+from contextlib import contextmanager
+import sys
 
+# --- CONFIGURAÇÃO INICIAL (sem alterações) ---
 DB_HOST = "localhost"
 DB_PORT = "6000"
 DB_NAME = "jogo"
 DB_USER = "jogador"
 DB_PASS = "sbd1_password"
 
-def get_connection():
+try:
+    db_pool = pool.SimpleConnectionPool(
+        minconn=1,  # Número mínimo de conexões no pool
+        maxconn=10, # Número máximo de conexões
+        host=DB_HOST,
+        port=DB_PORT,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASS
+    )
+except psycopg2.OperationalError as e:
+    print(f"Erro CRÍTICO ao inicializar o pool de conexões: {e}")
+    print("Verifique se o container Docker está rodando e as credenciais estão corretas.")
+    db_pool = None
+    # Encerra o programa se não conseguir conectar ao banco na inicialização
+    sys.exit("Não foi possível conectar ao banco de dados. O programa será encerrado.")
+
+
+
+@contextmanager
+def db_session():
+    """Fornece uma sessão de banco de dados transacional."""
+    conn = None
     try:
-        conn = psycopg2.connect(host=DB_HOST, port=DB_PORT, dbname=DB_NAME, user=DB_USER, password=DB_PASS)
-        return conn
-    except psycopg2.OperationalError as e:
-        print(f"Erro ao conectar no PostgreSQL: {e}")
-        print("Verifique se o container Docker está rodando e as credenciais estão corretas.")
-        return None
+        conn = db_pool.getconn()
+        # O autocommit é desabilitado para que possamos controlar a transação.
+        conn.autocommit = False
+        cur = conn.cursor()
+        yield cur
+        conn.commit()
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        # Re-lança a exceção para que a função que chamou saiba do erro
+        raise e
+    finally:
+        if conn:
+            cur.close()
+            db_pool.putconn(conn)
+
+
+VALID_DB_FUNCTIONS = {
+    'criar_personagem', 'comprar_item', 'usar_elevador', 'mover_personagem',
+    'concluir_missao', 'usar_item', 'equipar_item', 'desequipar_item'
+}
 
 def call_db_function(function_name, *args):
+    """
+    Chama uma função PL/pgSQL do banco de dados de forma segura,
+    usando a whitelist e o gerenciador de sessão.
+    """
+    if function_name not in VALID_DB_FUNCTIONS:
+        print(f"ALERTA DE SEGURANÇA: Tentativa de chamar função inválida '{function_name}'")
+        return "Erro: Operação inválida."
+
     result = None
-    conn = get_connection()
-    if not conn:
-        return f"Erro: Falha na conexão com o banco de dados."
     try:
-        with conn.cursor() as cur:
+        # Agora usamos nosso gerenciador de sessão!
+        with db_session() as cur:
             cur.execute(f"SELECT {function_name}({', '.join(['%s'] * len(args))});", args)
             if cur.description:
                 result = cur.fetchone()[0]
-            conn.commit()
     except Exception as e:
         print(f"Erro ao executar a função '{function_name}': {e}")
-        if conn: conn.rollback()
-    finally:
-        if conn: conn.close()
+        # O rollback já é tratado pelo db_session
+        return f"Erro inesperado ao executar a função: {e}"
     return result
 
-# MODIFICAÇÃO 1: Agora busca da tabela Personagem, filtrando por tipo 'PC'
+
 def get_all_characters():
+    """Busca todos os personagens jogáveis."""
     characters = []
-    conn = get_connection()
-    if not conn: return characters
     try:
-        with conn.cursor() as cur:
-            # Junta Personagem e Estagiario para garantir que estamos pegando apenas personagens jogáveis criados.
+        with db_session() as cur:
             cur.execute("""
                 SELECT p.id_personagem, p.nome 
                 FROM Personagem p
@@ -51,35 +94,24 @@ def get_all_characters():
             characters = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar personagens: {e}")
-    finally:
-        if conn: conn.close()
     return characters
 
 def get_location_details(personagem_id):
-    """
-    Chama a função 'descrever_local_detalhado' e retorna os detalhes
-    da sala de forma estruturada (nome, descricao, lista_de_saidas).
-    """
+    """Chama a função 'descrever_local_detalhado' e retorna os detalhes da sala."""
     details = None
-    conn = get_connection()
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute("SELECT * FROM descrever_local_detalhado(%s);", (personagem_id,))
             details = cur.fetchone()
     except Exception as e:
         print(f"Erro ao buscar detalhes do local: {e}")
-    finally:
-        if conn:
-            conn.close()
     return details
-
 
 def get_player_room_info(personagem_id):
     """Retorna id, nome e descricao da sala atual do jogador."""
     info = None
-    conn = get_connection()
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(
                 """
                 SELECT s.id_sala, s.nome, s.descricao
@@ -92,18 +124,13 @@ def get_player_room_info(personagem_id):
             info = cur.fetchone()
     except Exception as e:
         print(f"Erro ao buscar sala atual: {e}")
-    finally:
-        if conn:
-            conn.close()
     return info
-
 
 def get_npcs_in_room(sala_id):
     """Retorna lista de NPCs presentes na sala."""
     npcs = []
-    conn = get_connection()
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(
                 """
                 SELECT p.id_personagem, p.nome, n.tipo
@@ -117,17 +144,13 @@ def get_npcs_in_room(sala_id):
             npcs = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar NPCs: {e}")
-    finally:
-        if conn:
-            conn.close()
     return npcs
+    
 
 def get_items_for_sale(item_type=None):
-    """Lista itens disponíveis na loja, opcionalmente filtrando por tipo."""
     itens = []
-    conn = get_connection()
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             base_query = """
                 SELECT ii.id_instancia, i.nome, i.descricao, i.preco_base, ii.quantidade,
                        COALESCE(e.bonus_ataque, 0) AS bonus_ataque,
@@ -143,45 +166,29 @@ def get_items_for_sale(item_type=None):
             if item_type:
                 base_query += " AND i.tipo = %s"
                 params.append(item_type)
-
             base_query += " ORDER BY i.nome;"
-
             cur.execute(base_query, params)
             itens = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar itens da loja: {e}")
-    finally:
-        if conn:
-            conn.close()
     return itens
 
 def get_player_coins(personagem_id):
-    """Retorna a quantidade atual de moedas do jogador."""
     coins = 0
-    conn = get_connection()
     try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT coins FROM Estagiario WHERE id_personagem = %s;",
-                (personagem_id,),
-            )
+        with db_session() as cur:
+            cur.execute("SELECT coins FROM Estagiario WHERE id_personagem = %s;", (personagem_id,))
             res = cur.fetchone()
             if res:
                 coins = res[0]
     except Exception as e:
         print(f"Erro ao buscar moedas do jogador: {e}")
-    finally:
-        if conn:
-            conn.close()
     return coins
 
-# MODIFICAÇÃO 2: Agora busca o nome da tabela Personagem
 def get_player_stats(personagem_id):
-    """Retorna status completo do jogador."""
     stats = None
-    conn = get_connection()
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(
                 """
                 SELECT p.nome, e.nivel, e.xp, e.respeito, e.coins, e.ataque, e.defesa, e.vida, e.status
@@ -194,59 +201,32 @@ def get_player_stats(personagem_id):
             stats = cur.fetchone()
     except Exception as e:
         print(f"Erro ao buscar status do jogador: {e}")
-    finally:
-        if conn:
-            conn.close()
     return stats
 
-def buy_item(personagem_id, instancia_id, quantidade):
-    """Executa a compra de um item da loja."""
-    return call_db_function("comprar_item", personagem_id, instancia_id, quantidade)
-
-def use_elevator(personagem_id, andar_destino):
-    """Chama a função do banco de dados para usar o elevador."""
-    return call_db_function("usar_elevador", personagem_id, andar_destino)
-
 def get_all_floors():
-    """Retorna uma lista de todos os andares (numero, nome)."""
     andares = []
-    conn = get_connection()
-    if not conn: return andares
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute("SELECT numero, nome FROM Andar ORDER BY numero;")
             andares = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar andares: {e}")
-    finally:
-        if conn: conn.close()
     return andares
 
-# =================================================================
-# == FUNÇÕES PARA O SISTEMA DE MISSÕES E INTERAÇÕES ==
-# =================================================================
-
 def get_dialogue_for_npc(npc_id):
-    """Busca o diálogo padrão de um NPC."""
     dialogue = None
-    conn = get_connection()
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute("SELECT dialogo_padrao FROM npc WHERE id_personagem = %s;", (npc_id,))
             result = cur.fetchone()
             if result:
                 dialogue = result[0]
     except Exception as e:
         print(f"Erro ao buscar diálogo do NPC: {e}")
-    finally:
-        if conn:
-            conn.close()
     return dialogue
 
 def get_available_missions_from_npc(player_id, npc_id):
-    """Verifica se um NPC tem missões disponíveis para o jogador."""
     missions = []
-    conn = get_connection()
     query = """
         SELECT m.id_missao, m.nome, m.dialogo_inicial
         FROM Missao m
@@ -254,21 +234,14 @@ def get_available_missions_from_npc(player_id, npc_id):
         WHERE m.npc_origem = %s AND (ms.status IS NULL OR ms.status = 'Disponível');
     """
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(query, (player_id, npc_id))
             missions = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar missões do NPC: {e}")
-    finally:
-        if conn:
-            conn.close()
     return missions
 
 def accept_mission(player_id, mission_id):
-    """Registra que um jogador aceitou uma missão, mudando seu status para 'Em Andamento'."""
-    conn = get_connection()
-    if not conn: return False, "Falha na conexão com o banco."
-    
     query = """
         INSERT INTO MissaoStatus (id_missao, id_estagiario, status)
         VALUES (%s, %s, 'Em Andamento')
@@ -276,21 +249,15 @@ def accept_mission(player_id, mission_id):
         DO UPDATE SET status = 'Em Andamento';
     """
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(query, (mission_id, player_id))
-            conn.commit()
-            return True, "Missão aceita! Acompanhe em seu Painel de Tarefas."
+        return True, "Missão aceita! Acompanhe em seu Painel de Tarefas."
     except Exception as e:
-        if conn: conn.rollback()
         print(f"Erro ao aceitar missão: {e}")
         return False, "Ocorreu um erro ao tentar aceitar a missão."
-    finally:
-        if conn: conn.close()
 
 def get_player_missions(player_id):
-    """Busca todas as missões (em andamento ou concluídas) de um jogador."""
     missions = []
-    conn = get_connection()
     query = """
         SELECT m.nome, ms.status, m.descricao
         FROM Missao m
@@ -299,40 +266,30 @@ def get_player_missions(player_id):
         ORDER BY ms.status, m.nome;
     """
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(query, (player_id,))
             missions = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar missões do jogador: {e}")
-    finally:
-        if conn: conn.close()
     return missions
 
 def get_player_missions_status(player_id):
-    """Retorna um dicionário simples com o status de todas as missões de um jogador."""
     missions_status = {}
-    conn = get_connection()
     query = "SELECT id_missao, status FROM MissaoStatus WHERE id_estagiario = %s;"
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(query, (player_id,))
             results = cur.fetchall()
             for row in results:
                 missions_status[row[0]] = row[1]
     except Exception as e:
         print(f"Erro ao buscar status das missões do jogador: {e}")
-    finally:
-        if conn:
-            conn.close()
     return missions_status
 
 def get_interactable_mission_in_room(player_id, sala_id):
-    """Verifica se há uma missão de MANUTENÇÃO ativa na sala atual do jogador."""
-    mission = None
-    conn = get_connection()
-    if sala_id != 2: # A missão 'Check-up no Servidor' ocorre na sala com id=2 ('Data Center')
+    if sala_id != 2:
         return None
-        
+    mission = None
     query = """
         SELECT m.id_missao, m.nome, m.tipo
         FROM Missao m
@@ -343,20 +300,15 @@ def get_interactable_mission_in_room(player_id, sala_id):
           AND m.nome = 'Check-up no Servidor';
     """
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(query, (player_id,))
             mission = cur.fetchone()
     except Exception as e:
         print(f"Erro ao verificar missão interativa na sala: {e}")
-    finally:
-        if conn: conn.close()
     return mission
 
-# ---- FUNÇÕES DE COMBATE ----
 def get_inimigos_na_sala(sala_id):
-    """Busca instâncias de inimigos que podem aparecer na sala atual do jogador."""
     inimigos = []
-    conn = get_connection()
     query = """
         SELECT ii.id_instancia, i.nome, ii.vida, ii.dano, m.id_missao
         FROM InstanciaInimigo ii
@@ -370,19 +322,15 @@ def get_inimigos_na_sala(sala_id):
         );
     """
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(query, (sala_id,))
             inimigos = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar inimigos na sala: {e}")
-    finally:
-        if conn: conn.close()
     return inimigos
 
 def get_missao_combate_ativa(player_id, mission_id):
-    """Busca o progresso de uma missão de combate (alvo vs atual)."""
     progresso = None
-    conn = get_connection()
     query = """
         SELECT mc.quantidade_alvo, mc.quantidade_atual
         FROM MissaoCombate mc
@@ -390,63 +338,32 @@ def get_missao_combate_ativa(player_id, mission_id):
         WHERE ms.id_estagiario = %s AND ms.id_missao = %s AND ms.status = 'Em Andamento';
     """
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(query, (player_id, mission_id))
             progresso = cur.fetchone()
     except Exception as e:
         print(f"Erro ao buscar progresso da missão de combate: {e}")
-    finally:
-        if conn: conn.close()
     return progresso
 
 def atualizar_progresso_combate(mission_id):
-    """Incrementa o contador de inimigos derrotados para uma missão."""
-    conn = get_connection()
     query = "UPDATE MissaoCombate SET quantidade_atual = quantidade_atual + 1 WHERE id_missao = %s;"
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(query, (mission_id,))
-            conn.commit()
     except Exception as e:
-        if conn: conn.rollback()
         print(f"Erro ao atualizar progresso de combate: {e}")
-    finally:
-        if conn: conn.close()
 
-# ---- FUNÇÃO DE CONCLUSÃO DE MISSÃO ----
-def complete_mission(player_id, mission_id):
-    """Chama a função do banco de dados para concluir a missão e obter as recompensas."""
-    return call_db_function("concluir_missao", player_id, mission_id)
-    
-# Função de inventário atualizada para mostrar status (equipado/mochila)
 def get_player_inventory(personagem_id):
-    """Busca os itens no inventário e os itens equipados de um jogador."""
     inventory = []
-    conn = get_connection()
-    if not conn: return inventory
     query = """
-        SELECT
-            inst.id_instancia,
-            i.nome,
-            ii.quantidade,
-            i.descricao,
-            i.tipo,
-            'Na Mochila' as status
+        SELECT inst.id_instancia, i.nome, ii.quantidade, i.descricao, i.tipo, 'Na Mochila' as status
         FROM Inventario inv
         JOIN ItemInventario ii ON inv.id_inventario = ii.id_inventario
         JOIN InstanciaItem inst ON ii.id_instancia = inst.id_instancia
         JOIN Item i ON inst.id_item = i.id_item
         WHERE inv.id_estagiario = %s
-
         UNION ALL
-
-        SELECT
-            inst.id_instancia,
-            i.nome,
-            1 as quantidade, -- Itens equipados sempre têm quantidade 1
-            i.descricao,
-            i.tipo,
-            'Equipado (' || ee.slot || ')' as status
+        SELECT inst.id_instancia, i.nome, 1 as quantidade, i.descricao, i.tipo, 'Equipado (' || ee.slot || ')' as status
         FROM EstagiarioEquipamento ee
         JOIN InstanciaItem inst ON ee.id_instancia = inst.id_instancia
         JOIN Item i ON inst.id_item = i.id_item
@@ -454,24 +371,28 @@ def get_player_inventory(personagem_id):
         ORDER BY tipo, nome;
     """
     try:
-        with conn.cursor() as cur:
+        with db_session() as cur:
             cur.execute(query, (personagem_id, personagem_id))
             inventory = cur.fetchall()
     except Exception as e:
         print(f"Erro ao buscar inventário do jogador: {e}")
-    finally:
-        if conn: conn.close()
     return inventory
 
-# funções para chamar a lógica do banco de dados
+
+def buy_item(personagem_id, instancia_id, quantidade):
+    return call_db_function("comprar_item", personagem_id, instancia_id, quantidade)
+
+def use_elevator(personagem_id, andar_destino):
+    return call_db_function("usar_elevador", personagem_id, andar_destino)
+
+def complete_mission(player_id, mission_id):
+    return call_db_function("concluir_missao", player_id, mission_id)
+
 def use_item(personagem_id, instancia_id):
-    """Chama a função para usar um item consumível ou power-up."""
     return call_db_function("usar_item", personagem_id, instancia_id)
 
 def equip_item(personagem_id, instancia_id):
-    """Chama a função para equipar um item."""
     return call_db_function("equipar_item", personagem_id, instancia_id)
 
 def unequip_item(personagem_id, instancia_id):
-    """Chama a função para desequipar um item."""
     return call_db_function("desequipar_item", personagem_id, instancia_id)
